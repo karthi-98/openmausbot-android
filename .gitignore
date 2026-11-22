@@ -10,3 +10,4 @@ keystore.properties
 
 # Local build output
 build.log
+shots.log
