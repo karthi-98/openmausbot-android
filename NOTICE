@@ -1,0 +1,24 @@
+OpenMausBot
+Copyright 2026 Milind Soni and OpenMausBot contributors
+
+OpenMausBot was relicensed from the MIT License to the Apache License,
+Version 2.0, with the consent of all contributors whose copyright was
+incorporated before the transition.
+
+The Google Antigravity ACP integration adapts release, installation, profile,
+and authentication behavior from T3 Code, Copyright 2026 T3 Tools Inc., used
+under the MIT License.
+
+The secure phone credential transport uses @hpke/core and @hpke/common from
+hpke-js, Copyright 2023-2024 Ajitomi Daisuke, used under the MIT License.
+
+Selected provider icon paths are from Simple Icons, used under CC0 1.0.
+The Cohere provider icon path is from Lobe Icons, Copyright 2023 LobeHub,
+used under the MIT License.
+
+---------------------------------------------------------------------------
+This repository is derived from the Android companion app in OpenMausBot
+(https://github.com/milind-soni/OpenMausBot, `android/` at tag android-v1.5.0,
+commit 16ad4080f20fcd2fb310e27d527ce0f6a36e3724), licensed under the Apache
+License 2.0. Test fixtures in core/src/test/fixtures come from that repository's
+ios/Tests/CompanionCoreTests/Fixtures. Files have been modified since.
