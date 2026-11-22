@@ -193,12 +193,13 @@ fun CompanionRoot(
     }
 
     CompanionTheme {
-        // One place for system insets: the app draws edge to edge, and every
-        // screen wants the same answer — keep content clear of the status bar,
-        // the gesture bar, and the keyboard.
+        // One place for system insets: the app draws edge to edge, so the
+        // Surface fills the whole window (its colour shows through the
+        // transparent status and gesture bars) and the content inside it keeps
+        // clear of the status bar, the gesture bar, and the keyboard.
         Box(modifier = Modifier.fillMaxSize()) {
-            Surface(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
-                Box(modifier = Modifier.fillMaxSize()) {
+            Surface(modifier = Modifier.fillMaxSize()) {
+                Box(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
                     when (route) {
                         OnboardingRoute.WELCOME -> WelcomeScreen(
                             onConnect = ::startPairing,

@@ -10,6 +10,7 @@ import android.os.LocaleList
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
@@ -88,6 +89,9 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Draw behind the status and navigation bars, with transparent bars whose
+        // icons follow light/dark mode. RootScreen keeps content clear of them.
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
         notificationNavigation = PendingThreadNavigation(
