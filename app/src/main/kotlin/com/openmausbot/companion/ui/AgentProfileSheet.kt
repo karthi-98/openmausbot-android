@@ -57,7 +57,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -211,8 +210,7 @@ internal fun AgentProfileSheet(bot: Bot, onDismiss: () -> Unit, onOpenOverview: 
                     }
                     Text(
                         text = "Bot settings",
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.align(Alignment.Center),
                     )
                 }
@@ -232,7 +230,7 @@ internal fun AgentProfileSheet(bot: Bot, onDismiss: () -> Unit, onOpenOverview: 
                             modifier = Modifier.fillMaxWidth().heightIn(min = MIN_TOUCH_TARGET),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(ModelRules.LOADING, fontSize = 15.sp, modifier = Modifier.weight(1f))
+                            Text(ModelRules.LOADING, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
                             CircularProgressIndicator(modifier = Modifier.size(20.dp))
                         }
                     } else if (instanceChoices.isEmpty()) {
@@ -628,7 +626,7 @@ internal fun ChoicePicker(
                         Column {
                             Text(choice.label)
                             choice.detail?.let {
-                                Text(it, fontSize = 13.sp, color = secondaryTint)
+                                Text(it, style = MaterialTheme.typography.bodyMedium, color = secondaryTint)
                             }
                         }
                     },
@@ -698,14 +696,13 @@ internal fun FormSection(
         header?.let {
             Text(
                 text = it.uppercase(),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.labelMedium,
                 color = secondaryTint,
             )
         }
         HorizontalDivider()
         content()
-        footer?.let { Text(text = it, fontSize = 13.sp, color = secondaryTint) }
+        footer?.let { Text(text = it, style = MaterialTheme.typography.bodyMedium, color = secondaryTint) }
     }
 }
 
@@ -746,7 +743,7 @@ internal fun ActionRow(
                 modifier = Modifier.size(20.dp),
             )
         }
-        Text(text = text, fontSize = 15.sp, color = tint)
+        Text(text = text, style = MaterialTheme.typography.bodyMedium, color = tint)
     }
 }
 
@@ -772,7 +769,7 @@ internal fun SwitchRow(
     ) {
         Text(
             text = label,
-            fontSize = 15.sp,
+            style = MaterialTheme.typography.bodyMedium,
             color = if (enabled) Color.Unspecified else secondaryTint.copy(alpha = 0.5f),
             modifier = Modifier.weight(1f),
         )
@@ -808,7 +805,7 @@ internal fun IconNote(
                 modifier = Modifier.size(18.dp),
             )
         }
-        Text(text = text, fontSize = 13.sp, color = resolved)
+        Text(text = text, style = MaterialTheme.typography.bodyMedium, color = resolved)
     }
 }
 

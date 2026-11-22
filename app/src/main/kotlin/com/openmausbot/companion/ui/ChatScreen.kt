@@ -51,7 +51,6 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -833,7 +832,7 @@ private fun LoadedChat(
                                 },
                                 modifier = Modifier.fillMaxWidth(),
                             ) {
-                                Text("Load earlier messages", fontSize = 13.sp)
+                                Text("Load earlier messages", style = MaterialTheme.typography.bodyMedium)
                             }
                         }
                     }
@@ -849,7 +848,7 @@ private fun LoadedChat(
                                         System.currentTimeMillis(),
                                         locale = Locale.getDefault(),
                                     ),
-                                    fontSize = 13.sp,
+                                    style = MaterialTheme.typography.bodyMedium,
                                     color = secondaryTint,
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -1223,8 +1222,7 @@ private fun BackPill(unreadElsewhere: Int, onBack: () -> Unit) {
         if (unreadElsewhere > 0) {
             Text(
                 text = "$unreadElsewhere",
-                fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSecondaryContainer,
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape)
@@ -1263,8 +1261,7 @@ private fun NamePill(chat: Chat, onOpen: () -> Unit) {
     ) {
         Text(
             text = chat.name,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.titleSmall,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f, fill = false),
@@ -1273,7 +1270,7 @@ private fun NamePill(chat: Chat, onOpen: () -> Unit) {
         if (subtitle.isNotEmpty()) {
             Text(
                 text = subtitle,
-                fontSize = 13.sp,
+                style = MaterialTheme.typography.bodyMedium,
                 color = secondaryTint,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -1371,13 +1368,12 @@ private fun BoxScope.PlusSheet(
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(
                             text = action.title,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Medium,
+                            style = MaterialTheme.typography.titleMedium,
                             color = tint.copy(alpha = alpha),
                         )
                         Text(
                             text = action.subtitle,
-                            fontSize = 13.sp,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = secondaryTint.copy(alpha = alpha),
                         )
                     }
@@ -1405,7 +1401,7 @@ private fun ComposerStatusLine(text: String) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
-        Text(text = text, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = secondaryTint, maxLines = 1)
+        Text(text = text, style = MaterialTheme.typography.labelLarge, color = secondaryTint, maxLines = 1)
     }
 }
 
@@ -1490,8 +1486,8 @@ private fun Composer(
         if (dictationError != null) {
             Text(
                 text = dictationError,
-                fontSize = 13.sp,
-                color = Color(0xFFFF9800),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
                 modifier = Modifier.padding(horizontal = 4.dp),
             )
         }
@@ -1507,7 +1503,7 @@ private fun Composer(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFFF9800).copy(alpha = 0.12f), RoundedCornerShape(12.dp))
+                    .background(AppColors.status.warningContainer, RoundedCornerShape(12.dp))
                     .padding(horizontal = 12.dp, vertical = 9.dp)
                     .semantics(mergeDescendants = true) { },
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -1516,14 +1512,13 @@ private fun Composer(
                 Icon(
                     imageVector = Icons.Filled.Warning,
                     contentDescription = null,
-                    tint = Color(0xFFFF9800),
+                    tint = AppColors.status.onWarningContainer,
                     modifier = Modifier.size(18.dp),
                 )
-                Text(text = attachmentError, fontSize = 13.sp, modifier = Modifier.weight(1f))
+                Text(text = attachmentError, style = MaterialTheme.typography.bodyMedium, color = AppColors.status.onWarningContainer, modifier = Modifier.weight(1f))
                 Text(
                     text = "Dismiss",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
@@ -1642,7 +1637,7 @@ private fun Composer(
                 ) {
                     Text(
                         text = "/",
-                        fontSize = 18.sp,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace,
                         color = if (accessory == ComposerAccessory.HUD) {
@@ -1667,7 +1662,7 @@ private fun Composer(
                                 sending = sending,
                                 listening = dictationListening,
                             ),
-                            fontSize = 17.sp,
+                            style = MaterialTheme.typography.bodyLarge,
                             color = secondaryTint,
                         )
                     }
@@ -1678,11 +1673,10 @@ private fun Composer(
                         // edits without dimming the text.
                         readOnly = dictationLocked,
                         maxLines = 5,
-                        textStyle = LocalTextStyle.current.copy(
-                            fontSize = 17.sp,
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(
                             color = MaterialTheme.colorScheme.onSurface,
                         ),
-                        cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurface),
+                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                         // The software keyboard's Return breaks the line, like
                         // Messages; the arrow button on the bar is the one send.
                         // A hardware Return still sends and Shift+Return breaks
@@ -1717,7 +1711,7 @@ private fun Composer(
                             .size(32.dp)
                             .background(
                                 if (dictationListening) {
-                                    Color.Red.copy(alpha = 0.2f)
+                                    MaterialTheme.colorScheme.errorContainer
                                 } else {
                                     secondaryTint.copy(alpha = 0.12f)
                                 },
@@ -1728,7 +1722,7 @@ private fun Composer(
                         Icon(
                             painter = painterResource(R.drawable.ic_mic),
                             contentDescription = null,
-                            tint = if (dictationListening) Color.Red else MaterialTheme.colorScheme.onSurface,
+                            tint = if (dictationListening) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(16.dp),
                         )
                     }
@@ -1739,7 +1733,7 @@ private fun Composer(
                         modifier = Modifier
                             .size(32.dp)
                             .background(
-                                if (canSend) BubbleColor.mine else secondaryTint.copy(alpha = 0.18f),
+                                if (canSend) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
                                 CircleShape,
                             ),
                         contentAlignment = Alignment.Center,
@@ -1747,7 +1741,7 @@ private fun Composer(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Send,
                             contentDescription = "Send",
-                            tint = if (canSend) BubbleColor.mineText else secondaryTint,
+                            tint = if (canSend) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
                             modifier = Modifier.size(16.dp),
                         )
                     }

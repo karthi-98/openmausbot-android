@@ -104,7 +104,7 @@ internal fun AttentionRow(entry: AttentionEntry, onOpen: () -> Unit) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = entry.task.displayTitle,
-                fontSize = 15.sp,
+                style = MaterialTheme.typography.bodyMedium,
                 fontWeight = if (entry.task.unread == true) FontWeight.SemiBold else FontWeight.Medium,
                 color = if (entry.task.activity == "waiting-on-you") {
                     MaterialTheme.colorScheme.error
@@ -116,7 +116,7 @@ internal fun AttentionRow(entry: AttentionEntry, onOpen: () -> Unit) {
             )
             Text(
                 text = "${entry.botName} · ${entry.statusLine()}",
-                fontSize = 12.sp,
+                style = MaterialTheme.typography.bodySmall,
                 color = secondaryTint,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,

@@ -173,7 +173,7 @@ fun MessageRow(
             message.comm?.let {
                 Text(
                     text = "Messaged ${it.withName}",
-                    fontSize = 12.sp,
+                    style = MaterialTheme.typography.bodySmall,
                     color = secondaryTint,
                 )
             }
@@ -188,7 +188,7 @@ fun MessageRow(
                         }
                         Text(
                             text = "${group.emoji} ${group.count}",
-                            fontSize = 13.sp,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = tint,
                             modifier = Modifier
                                 .border(1.dp, tint.copy(alpha = 0.5f), CircleShape)
@@ -229,8 +229,7 @@ fun MessageRow(
                     )
                     Text(
                         text = "${versionIndex + 1} of ${versions.size}",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
+                        style = MaterialTheme.typography.labelMedium,
                         color = secondaryTint,
                     )
                     Icon(
@@ -258,7 +257,7 @@ fun MessageRow(
                 Reactions.CHOICES.forEach { emoji ->
                     Text(
                         text = emoji,
-                        fontSize = 22.sp,
+                        style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier
                             .clickable {
                                 menuOpen = false
@@ -314,7 +313,7 @@ fun MessageRow(
             title = { Text("Edit and retry") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("This creates a new version and continues from there.", fontSize = 14.sp)
+                    Text("This creates a new version and continues from there.", style = MaterialTheme.typography.bodyMedium)
                     OutlinedTextField(
                         value = editText,
                         onValueChange = { editText = it },
@@ -367,7 +366,7 @@ private fun SelectableTextDialog(text: String, onDismiss: () -> Unit) {
                 SelectionContainer {
                     Text(
                         text = text,
-                        fontSize = 16.sp,
+                        style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(max = 360.dp)
@@ -376,7 +375,7 @@ private fun SelectableTextDialog(text: String, onDismiss: () -> Unit) {
                 }
                 Text(
                     "Touch and hold the text to select part of it.",
-                    fontSize = 12.sp,
+                    style = MaterialTheme.typography.bodySmall,
                     color = secondaryTint,
                 )
             }
@@ -505,8 +504,7 @@ private fun TextBubble(
                 message.from?.let {
                     Text(
                         text = it.name,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.labelLarge,
                         color = Color(MausPalette.argb(it.color)),
                     )
                 }
@@ -544,7 +542,7 @@ private fun TextBubble(
                             SelectionContainer {
                                 Text(
                                     text = attached.text,
-                                    fontSize = 17.sp,
+                                    style = MaterialTheme.typography.bodyLarge,
                                     color = BubbleColor.mineText,
                                 )
                             }
@@ -588,17 +586,16 @@ private fun SharedAttachmentView(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text("FILE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = BubbleColor.mineText.copy(alpha = 0.68f))
+        Text("FILE", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = BubbleColor.mineText.copy(alpha = 0.68f))
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 attachment.name,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
+                style = MaterialTheme.typography.titleSmall,
                 color = BubbleColor.mineText,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            Text("Tap to preview", fontSize = 12.sp, color = BubbleColor.mineText.copy(alpha = 0.68f))
+            Text("Tap to preview", style = MaterialTheme.typography.bodySmall, color = BubbleColor.mineText.copy(alpha = 0.68f))
         }
     }
 }
@@ -679,8 +676,7 @@ private fun SharedImageAttachment(
         }
         Text(
             attachment.name,
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Medium,
+            style = MaterialTheme.typography.labelLarge,
             color = foreground,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -698,7 +694,7 @@ private fun AttachmentLoadFailure(label: String, foreground: Color = BubbleColor
             tint = foreground.copy(alpha = 0.70f),
             modifier = Modifier.size(20.dp),
         )
-        Text(label, fontSize = 13.sp, color = foreground.copy(alpha = 0.80f))
+        Text(label, style = MaterialTheme.typography.bodyMedium, color = foreground.copy(alpha = 0.80f))
         TextButton(onClick = onRetry) { Text("Retry") }
     }
 }
@@ -832,13 +828,13 @@ private fun VoiceNoteAttachmentView(
                     CircularProgressIndicator(
                         modifier = Modifier.size(14.dp),
                         strokeWidth = 2.dp,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimary,
                     )
-                playing -> VoiceNotePauseGlyph(Color.White)
+                playing -> VoiceNotePauseGlyph(MaterialTheme.colorScheme.onPrimary)
                 else -> Icon(
                     imageVector = Icons.Filled.PlayArrow,
                     contentDescription = null,
-                    tint = Color.White,
+                    tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(20.dp),
                 )
             }
@@ -862,7 +858,7 @@ private fun VoiceNoteAttachmentView(
         )
         Text(
             voiceNoteClock(positionMs) + " / " + (durationMs?.let(::voiceNoteClock) ?: "--:--"),
-            fontSize = 11.sp,
+            style = MaterialTheme.typography.labelSmall,
             color = foreground.copy(alpha = 0.80f),
         )
     }
@@ -956,15 +952,14 @@ private fun ActivityChip(
         }
         Text(
             text = tool.name,
-            fontSize = 13.sp,
+            style = MaterialTheme.typography.bodyMedium,
             maxLines = 1,
             color = if (status == ActivityStatus.ERROR) tint else secondaryTint,
         )
         if (ActivityReceipt.showsLabel(status)) {
             Text(
                 text = ActivityReceipt.label(status),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium,
+                style = MaterialTheme.typography.labelMedium,
                 maxLines = 1,
                 color = tint,
             )
@@ -1002,10 +997,10 @@ private fun ReceiptChip(label: String, detail: String) {
                     .size(ACTIVITY_DOT)
                     .background(secondaryTint, CircleShape),
             )
-            Text(text = label, fontSize = 13.sp, maxLines = 1, color = secondaryTint)
+            Text(text = label, style = MaterialTheme.typography.bodyMedium, maxLines = 1, color = secondaryTint)
         }
         if (expanded && detail.isNotEmpty() && detail != label) {
-            Text(text = detail, fontSize = 12.sp, color = secondaryTint)
+            Text(text = detail, style = MaterialTheme.typography.bodySmall, color = secondaryTint)
         }
     }
 }
@@ -1054,12 +1049,12 @@ fun ActivityRunChip(items: List<Message>, openThread: ((ThreadRef) -> Unit)? = n
                     Icon(
                         imageVector = Icons.Filled.Check,
                         contentDescription = null,
-                        tint = Color(0xFF22C55E),
+                        tint = AppColors.status.success,
                         modifier = Modifier.size(14.dp),
                     )
                 }
-                Text(summary, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-                Text(if (expanded) "Hide" else "Show", fontSize = 12.sp, color = secondaryTint)
+                Text(summary, style = MaterialTheme.typography.labelLarge)
+                Text(if (expanded) "Hide" else "Show", style = MaterialTheme.typography.bodySmall, color = secondaryTint)
             }
         }
         if (expanded) {
@@ -1103,14 +1098,14 @@ private fun CardView(chat: Chat, message: Message, haptics: Haptics) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(card.title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        Text(card.title, style = MaterialTheme.typography.titleMedium)
         // The detail of what is being approved is the thing worth copying.
         SelectionContainer {
-            Text(card.subtitle, fontSize = 15.sp, color = secondaryTint)
+            Text(card.subtitle, style = MaterialTheme.typography.bodyMedium, color = secondaryTint)
         }
 
         card.held?.let {
-            Text(it, fontSize = 13.sp, color = Color(MausPalette.argb("orange")))
+            Text(it, style = MaterialTheme.typography.bodyMedium, color = Color(MausPalette.argb("orange")))
         }
 
         skillRequest?.let { skill ->
@@ -1120,13 +1115,12 @@ private fun CardView(chat: Chat, message: Message, haptics: Haptics) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             "Review the complete SKILL.md",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.SemiBold,
+                            style = MaterialTheme.typography.labelMedium,
                             modifier = Modifier.weight(1f),
                         )
                         Text(
                             "sha256 ${reviewed.take(8)}",
-                            fontSize = 10.sp,
+                            style = MaterialTheme.typography.labelSmall,
                             fontFamily = FontFamily.Monospace,
                             color = secondaryTint,
                         )
@@ -1134,14 +1128,14 @@ private fun CardView(chat: Chat, message: Message, haptics: Haptics) {
                     SelectionContainer {
                         Text(
                             "Source: ${skill.source ?: "Unknown"}",
-                            fontSize = 11.sp,
+                            style = MaterialTheme.typography.labelSmall,
                             color = secondaryTint,
                         )
                     }
                     SelectionContainer {
                         Text(
                             skill.preview.orEmpty(),
-                            fontSize = 12.sp,
+                            style = MaterialTheme.typography.bodySmall,
                             fontFamily = FontFamily.Monospace,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -1168,7 +1162,7 @@ private fun CardView(chat: Chat, message: Message, haptics: Haptics) {
                     Text(
                         "This proposal was created by an older build and cannot be safely enabled. " +
                             "Deny it and ask the bot to create it again.",
-                        fontSize = 12.sp,
+                        style = MaterialTheme.typography.bodySmall,
                         color = Color(MausPalette.argb("orange")),
                         modifier = Modifier.weight(1f),
                     )
@@ -1227,7 +1221,7 @@ private fun CardView(chat: Chat, message: Message, haptics: Haptics) {
                     },
                     enabled = !answering,
                 ) {
-                    Text("Always allow this tool", fontSize = 14.sp)
+                    Text("Always allow this tool", style = MaterialTheme.typography.bodyMedium)
                 }
             }
         } else {
@@ -1242,7 +1236,7 @@ private fun CardView(chat: Chat, message: Message, haptics: Haptics) {
                         tint = secondaryTint,
                         modifier = Modifier.size(16.dp),
                     )
-                    Text(it, fontSize = 14.sp, color = secondaryTint)
+                    Text(it, style = MaterialTheme.typography.bodyMedium, color = secondaryTint)
                 }
             }
         }
@@ -1306,7 +1300,7 @@ private fun ScreenShot(threadId: String, message: Message) {
                         tint = MaterialTheme.colorScheme.error,
                         modifier = Modifier.size(20.dp),
                     )
-                    Text("Screenshot unavailable", fontSize = 13.sp, color = secondaryTint)
+                    Text("Screenshot unavailable", style = MaterialTheme.typography.bodyMedium, color = secondaryTint)
                     TextButton(onClick = { attempt += 1 }) { Text("Retry") }
                 }
                 is ScreenShotState.Ready -> Image(

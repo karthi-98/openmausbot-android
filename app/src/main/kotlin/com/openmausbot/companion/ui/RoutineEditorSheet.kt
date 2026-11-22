@@ -62,7 +62,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -210,8 +209,7 @@ internal fun RoutineEditorSheet(
                 }
                 Text(
                     text = if (opened.routineId == null) "New routine" else "Edit routine",
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.align(Alignment.Center),
                 )
                 TextButton(
@@ -314,7 +312,7 @@ internal fun RoutineEditorSheet(
                             modifier = Modifier.size(16.dp),
                             strokeWidth = 2.dp,
                         )
-                        Text(RoutineRules.CHECKING_CLOUD, fontSize = 13.sp, color = secondaryTint)
+                        Text(RoutineRules.CHECKING_CLOUD, style = MaterialTheme.typography.bodyMedium, color = secondaryTint)
                     }
                 } else if (availability == null) {
                     IconNote(
@@ -807,7 +805,7 @@ private fun RadioRow(
         }
         Text(
             text = label,
-            fontSize = 15.sp,
+            style = MaterialTheme.typography.bodyMedium,
             color = if (enabled) {
                 MaterialTheme.colorScheme.onSurface
             } else {
@@ -827,8 +825,8 @@ private fun ValueRow(label: String, value: String, onClick: () -> Unit) {
             .clickable(role = Role.Button, onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(label, fontSize = 15.sp, color = secondaryTint, modifier = Modifier.weight(1f))
-        Text(value, fontSize = 15.sp, color = MaterialTheme.colorScheme.primary)
+        Text(label, style = MaterialTheme.typography.bodyMedium, color = secondaryTint, modifier = Modifier.weight(1f))
+        Text(value, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
     }
 }
 
@@ -856,8 +854,7 @@ private fun DayToggle(letter: String, name: String, on: Boolean, onToggle: (Bool
     ) {
         Text(
             text = letter,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.titleSmall,
             color = if (on) {
                 MaterialTheme.colorScheme.onPrimary
             } else {

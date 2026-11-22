@@ -1,7 +1,6 @@
 package com.openmausbot.companion.ui
 
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -86,13 +85,6 @@ class SpeechBubbleTest {
         assertEquals(Offset(70f, 7f), mirror.map(Offset(30f, 7f)))
         assertEquals(Offset(0f, 0f), mirror.map(Offset(100f, 0f)))
         assertEquals(Offset(50f, -3f), mirror.map(Offset(50f, -3f)))
-    }
-
-    @Test
-    fun `what you said is filled with the mascot palette's blue, not the system's`() {
-        // `BubbleColor.mine = MausPalette.color("blue")`, and `mineText = .white`.
-        assertEquals(0xFF377FE6.toInt(), BubbleColor.mine.toArgb())
-        assertEquals(0xFFFFFFFF.toInt(), BubbleColor.mineText.toArgb())
     }
 
     private companion object {

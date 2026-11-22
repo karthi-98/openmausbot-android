@@ -30,7 +30,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -101,8 +100,7 @@ internal fun NewSectionSheet(onDismiss: () -> Unit) {
                 }
                 Text(
                     text = "Organize bots",
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.align(Alignment.Center),
                 )
                 TextButton(
@@ -146,12 +144,12 @@ internal fun NewSectionSheet(onDismiss: () -> Unit) {
                     Row(modifier = Modifier.fillMaxWidth()) {
                         Text(
                             text = if (joinsExisting) "Adds to existing section" else "Creates a new section",
-                            fontSize = 13.sp,
+                            style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.weight(1f),
                         )
                         Text(
                             text = "${trimmed.length}/${SectionRules.MAX_NAME_LENGTH}",
-                            fontSize = 13.sp,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = if (trimmed.length > SectionRules.MAX_NAME_LENGTH) {
                                 MaterialTheme.colorScheme.error
                             } else {
@@ -175,7 +173,7 @@ internal fun NewSectionSheet(onDismiss: () -> Unit) {
             if (pinnedSelection) {
                 Text(
                     text = SectionRules.PINNED_STAY,
-                    fontSize = 13.sp,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = secondaryTint,
                     modifier = Modifier.padding(horizontal = 20.dp),
                 )
@@ -183,8 +181,7 @@ internal fun NewSectionSheet(onDismiss: () -> Unit) {
 
             Text(
                 text = "Bots",
-                fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.labelLarge,
                 color = secondaryTint,
                 modifier = Modifier.padding(horizontal = 20.dp),
             )
@@ -196,7 +193,7 @@ internal fun NewSectionSheet(onDismiss: () -> Unit) {
                     } else {
                         SectionRules.UNDER_LIMIT
                     },
-                    fontSize = 12.sp,
+                    style = MaterialTheme.typography.bodySmall,
                     color = secondaryTint,
                     modifier = Modifier.padding(horizontal = 20.dp),
                 )
@@ -240,8 +237,8 @@ private fun SectionNote(
             modifier = Modifier.padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            Text(text = text, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-            detail?.let { Text(text = it, fontSize = 12.sp) }
+            Text(text = text, style = MaterialTheme.typography.labelLarge)
+            detail?.let { Text(text = it, style = MaterialTheme.typography.bodySmall) }
         }
     }
 }

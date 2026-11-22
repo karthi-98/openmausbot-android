@@ -37,7 +37,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -65,7 +64,6 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -541,10 +539,10 @@ private fun RosterHeader(name: String?, status: Session.Status, onSettings: () -
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            Text("Threads", fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+            Text("Threads", style = MaterialTheme.typography.titleMedium)
             Text(
                 text = RosterLayout.headerSubtitle(name, status),
-                fontSize = 13.sp,
+                style = MaterialTheme.typography.bodyMedium,
                 color = secondaryTint,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -564,8 +562,7 @@ private fun RosterHeader(name: String?, status: Session.Status, onSettings: () -
 private fun SectionLabel(text: String, modifier: Modifier = Modifier) {
     Text(
         text = RosterLayout.sectionLabel(text),
-        fontSize = 13.sp,
-        fontWeight = FontWeight.SemiBold,
+        style = MaterialTheme.typography.labelLarge,
         letterSpacing = 0.4.sp,
         color = secondaryTint,
         modifier = modifier.padding(horizontal = 20.dp),
@@ -650,7 +647,7 @@ private fun GroupTile(room: Room, members: List<Bot>, onClick: () -> Unit) {
                     .size(14.dp)
                     .background(MaterialTheme.colorScheme.surface, CircleShape)
                     .padding(2.dp)
-                    .background(BubbleColor.mine, CircleShape),
+                    .background(MaterialTheme.colorScheme.primary, CircleShape),
             )
         }
     }
@@ -703,8 +700,7 @@ private fun GroupTileFrame(
         Box(modifier = Modifier.size(64.dp), contentAlignment = Alignment.Center, content = content)
         Text(
             text = label,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Medium,
+            style = MaterialTheme.typography.labelMedium,
             color = labelColor,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -772,8 +768,7 @@ private fun ChatRow(
                         ) {
                             Text(
                                 text = chat.name,
-                                fontSize = 17.sp,
-                                fontWeight = FontWeight.SemiBold,
+                                style = MaterialTheme.typography.titleMedium,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.weight(1f, fill = false),
@@ -782,7 +777,7 @@ private fun ChatRow(
                             if (chat.subtitle.isNotEmpty()) {
                                 Text(
                                     text = chat.subtitle,
-                                    fontSize = 13.sp,
+                                    style = MaterialTheme.typography.bodyMedium,
                                     color = secondaryTint,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
@@ -802,7 +797,7 @@ private fun ChatRow(
                                 now,
                                 locale = Locale.getDefault(),
                             ),
-                            fontSize = 15.sp,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = secondaryTint,
                             maxLines = 1,
                         )
@@ -821,7 +816,7 @@ private fun ChatRow(
                         // One line for every bot, so the rows keep one rhythm.
                         Text(
                             text = summary.preview.ifEmpty { " " },
-                            fontSize = 15.sp,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = secondaryTint,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -854,8 +849,7 @@ private fun ChatRow(
                             )
                             Text(
                                 text = "Waiting on you",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.SemiBold,
+                                style = MaterialTheme.typography.labelMedium,
                                 color = Color.White,
                             )
                         }
@@ -919,17 +913,16 @@ private fun RosterBottomBar(
                 )
                 Box(modifier = Modifier.weight(1f)) {
                     if (bar.query.isEmpty()) {
-                        Text("Search threads", fontSize = 17.sp, color = secondaryTint)
+                        Text("Search threads", style = MaterialTheme.typography.bodyLarge, color = secondaryTint)
                     }
                     BasicTextField(
                         value = bar.query,
                         onValueChange = { onBar(bar.typed(it)) },
                         singleLine = true,
-                        textStyle = LocalTextStyle.current.copy(
-                            fontSize = 17.sp,
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(
                             color = MaterialTheme.colorScheme.onSurface,
                         ),
-                        cursorBrush = SolidColor(MaterialTheme.colorScheme.onSurface),
+                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -957,7 +950,7 @@ private fun RosterBottomBar(
                     .padding(horizontal = 16.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Text("Cancel", fontSize = 17.sp)
+                Text("Cancel", style = MaterialTheme.typography.bodyLarge)
             }
         } else {
             UpdatesBar(
@@ -1028,20 +1021,20 @@ private fun SearchHitRow(hit: SearchHit, onClick: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(hit.name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                Text(hit.name, style = MaterialTheme.typography.titleSmall)
                 hit.task?.takeIf { it.isNotEmpty() }?.let {
-                    Text(it, fontSize = 12.sp, color = secondaryTint)
+                    Text(it, style = MaterialTheme.typography.bodySmall, color = secondaryTint)
                 }
                 Spacer(Modifier.weight(1f))
                 Text(
                     text = RelativeStamp.list(hit.at, now, locale = Locale.getDefault()),
-                    fontSize = 12.sp,
+                    style = MaterialTheme.typography.bodySmall,
                     color = secondaryTint,
                 )
             }
             Text(
                 text = hit.snippet,
-                fontSize = 14.sp,
+                style = MaterialTheme.typography.bodyMedium,
                 color = secondaryTint,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
@@ -1065,7 +1058,7 @@ fun StatusBanner() {
     val (text, tint) = banner ?: return
     Text(
         text = text,
-        fontSize = 13.sp,
+        style = MaterialTheme.typography.bodyMedium,
         color = tint,
         modifier = Modifier
             .padding(horizontal = 16.dp, vertical = 4.dp)

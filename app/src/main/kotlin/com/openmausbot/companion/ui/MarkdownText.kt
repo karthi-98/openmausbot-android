@@ -89,7 +89,7 @@ private fun MarkdownBlockView(block: MarkdownBlock, tail: Boolean) {
     val muted = secondaryTint
     when (block) {
         is MarkdownBlock.Paragraph ->
-            Text(inline(block.text, tail, muted), fontSize = 17.sp)
+            Text(inline(block.text, tail, muted), style = MaterialTheme.typography.bodyLarge)
 
         is MarkdownBlock.Heading ->
             // Three sizes, not six. A chat bubble is not a document, and an h4
@@ -120,7 +120,7 @@ private fun MarkdownBlockView(block: MarkdownBlock, tail: Boolean) {
                         .fillMaxHeight()
                         .background(muted.copy(alpha = 0.4f), RoundedCornerShape(1.5.dp)),
                 )
-                Text(inline(block.text, tail, muted), fontSize = 17.sp, color = muted)
+                Text(inline(block.text, tail, muted), style = MaterialTheme.typography.bodyLarge, color = muted)
             }
 
         is MarkdownBlock.Code ->
@@ -134,9 +134,8 @@ private fun MarkdownBlockView(block: MarkdownBlock, tail: Boolean) {
                 block.language?.takeIf { it.isNotEmpty() }?.let {
                     Text(
                         text = it,
-                        fontSize = 11.sp,
+                        style = MaterialTheme.typography.labelSmall,
                         fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.Medium,
                         color = muted,
                     )
                 }
@@ -150,7 +149,7 @@ private fun MarkdownBlockView(block: MarkdownBlock, tail: Boolean) {
                         append(block.text)
                         appendCaret(tail, muted)
                     },
-                    fontSize = 14.sp,
+                    style = MaterialTheme.typography.bodyMedium,
                     fontFamily = FontFamily.Monospace,
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
                 )
@@ -169,11 +168,11 @@ private fun MarkerRow(symbol: String, indent: Int, text: String, tail: Boolean, 
     ) {
         Text(
             text = symbol,
-            fontSize = 17.sp,
+            style = MaterialTheme.typography.bodyLarge,
             color = muted,
             modifier = Modifier.widthIn(min = 16.dp),
         )
-        Text(inline(text, tail, muted), fontSize = 17.sp)
+        Text(inline(text, tail, muted), style = MaterialTheme.typography.bodyLarge)
     }
 }
 

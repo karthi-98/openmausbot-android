@@ -133,7 +133,7 @@ fun ConnectedAppsScreen(onBack: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             HeaderBackButton(onBack)
-            Text("Connected Apps", fontSize = 17.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+            Text("Connected Apps", style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
             TextButton(
                 onClick = { scope.launch { refresh(showProgress = true) } },
                 enabled = !refreshing,
@@ -177,7 +177,7 @@ fun ConnectedAppsScreen(onBack: () -> Unit) {
                             Text(
                                 "Configure Composio on your computer first. Provider credentials are never returned to this phone.",
                                 color = secondaryTint,
-                                fontSize = 13.sp,
+                                style = MaterialTheme.typography.bodyMedium,
                             )
                         }
                     }
@@ -227,7 +227,7 @@ fun ConnectedAppsScreen(onBack: () -> Unit) {
                     Text(
                         "An alias makes the account explicit when an agent uses more than one ${target.label} account.",
                         color = secondaryTint,
-                        fontSize = 13.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                     )
                 }
             },
@@ -270,7 +270,7 @@ private fun CredentialStoreWarning(hasLastKnownInventory: Boolean) {
                     "Your computer could not open its credential store, so it cannot say which accounts are connected. Nothing has been disconnected — restarting OpenMausBot on your computer usually clears this."
                 },
                 color = secondaryTint,
-                fontSize = 13.sp,
+                style = MaterialTheme.typography.bodyMedium,
             )
         }
     }
@@ -294,9 +294,9 @@ private fun ConnectorCardView(
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(card.label, fontWeight = FontWeight.SemiBold)
-                    Text(card.blurb, color = secondaryTint, fontSize = 13.sp)
+                    Text(card.blurb, color = secondaryTint, style = MaterialTheme.typography.bodyMedium)
                 }
-                if (pending) Text("Connecting…", color = secondaryTint, fontSize = 13.sp)
+                if (pending) Text("Connecting…", color = secondaryTint, style = MaterialTheme.typography.bodyMedium)
             }
 
             when {
@@ -309,7 +309,7 @@ private fun ConnectorCardView(
                     Text(
                         "Account details are unavailable from this provider. Refresh after authorization finishes.",
                         color = secondaryTint,
-                        fontSize = 13.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                     )
                 }
                 else -> {
@@ -332,10 +332,10 @@ private fun ConnectorAccountRow(account: ConnectorAccount) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Column(modifier = Modifier.weight(1f)) {
             Text(account.displayName)
-            Text(ConnectedAppsPolicy.statusLabel(account.status), color = secondaryTint, fontSize = 12.sp)
-            SelectionContainer { Text(account.id, color = secondaryTint, fontSize = 11.sp) }
+            Text(ConnectedAppsPolicy.statusLabel(account.status), color = secondaryTint, style = MaterialTheme.typography.bodySmall)
+            SelectionContainer { Text(account.id, color = secondaryTint, style = MaterialTheme.typography.labelSmall) }
         }
-        Text(if (account.isActive) "Active" else "Pending", color = secondaryTint, fontSize = 12.sp)
+        Text(if (account.isActive) "Active" else "Pending", color = secondaryTint, style = MaterialTheme.typography.bodySmall)
     }
 }
 

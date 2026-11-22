@@ -37,7 +37,6 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -105,7 +104,7 @@ fun SettingsScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             HeaderBackButton(onBack)
-            Text("Settings", fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+            Text("Settings", style = MaterialTheme.typography.titleMedium)
         }
         HorizontalDivider()
 
@@ -287,7 +286,7 @@ fun SettingsScreen(
             title = { Text("Edit address") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(SettingsPolicy.EDIT_ADDRESS_MESSAGE, fontSize = 14.sp)
+                    Text(SettingsPolicy.EDIT_ADDRESS_MESSAGE, style = MaterialTheme.typography.bodyMedium)
                     OutlinedTextField(
                         value = addressText,
                         onValueChange = {
@@ -301,7 +300,7 @@ fun SettingsScreen(
                         modifier = Modifier.fillMaxWidth(),
                     )
                     addressError?.let {
-                        Text(it, fontSize = 13.sp, color = MaterialTheme.colorScheme.error)
+                        Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
                     }
                 }
             },
@@ -408,7 +407,7 @@ fun SettingsScreen(
                             RadioButton(selected = detail == activityDetail, onClick = null)
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(detail.label, textAlign = TextAlign.Start)
-                                Text(detail.caption, fontSize = 12.sp, color = secondaryTint)
+                                Text(detail.caption, style = MaterialTheme.typography.bodySmall, color = secondaryTint)
                             }
                         }
                     }
@@ -433,8 +432,7 @@ private fun SettingsSection(title: String?, content: @Composable () -> Unit) {
         title?.let {
             Text(
                 text = it.uppercase(),
-                fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.labelMedium,
                 color = secondaryTint,
             )
         }
@@ -446,10 +444,10 @@ private fun SettingsSection(title: String?, content: @Composable () -> Unit) {
 @Composable
 private fun SettingsRow(label: String, value: String) {
     Row(modifier = Modifier.fillMaxWidth()) {
-        Text(label, fontSize = 15.sp, color = secondaryTint)
+        Text(label, style = MaterialTheme.typography.bodyMedium, color = secondaryTint)
         Text(
             text = value,
-            fontSize = 15.sp,
+            style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.End,
             modifier = Modifier
                 .weight(1f)
@@ -471,13 +469,13 @@ private fun AddressRow(
     onCopy: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text("Address", fontSize = 15.sp, color = secondaryTint)
+        Text("Address", style = MaterialTheme.typography.bodyMedium, color = secondaryTint)
         if (expanded) {
             // Selectable, because the reason to show it in full is to take it away.
             SelectionContainer {
                 Text(
                     text = address,
-                    fontSize = 13.sp,
+                    style = MaterialTheme.typography.bodyMedium,
                     fontFamily = FontFamily.Monospace,
                     color = secondaryTint,
                 )
@@ -485,7 +483,7 @@ private fun AddressRow(
         } else {
             Text(
                 text = shortenedAddress(address),
-                fontSize = 13.sp,
+                style = MaterialTheme.typography.bodyMedium,
                 fontFamily = FontFamily.Monospace,
                 color = secondaryTint,
                 maxLines = 1,
@@ -549,7 +547,7 @@ private fun SettingsButton(
 
 @Composable
 private fun Footnote(text: String) {
-    Text(text = text, fontSize = 13.sp, color = secondaryTint)
+    Text(text = text, style = MaterialTheme.typography.bodyMedium, color = secondaryTint)
 }
 
 private const val ADDRESS_CLIP_LABEL = "OpenMausMobile computer address"

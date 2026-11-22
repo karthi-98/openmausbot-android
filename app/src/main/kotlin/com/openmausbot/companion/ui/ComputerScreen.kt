@@ -37,7 +37,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -126,14 +125,12 @@ fun ComputerScreen(botId: String, onBack: () -> Unit) {
             Text(
                 text = bot.name,
                 color = Color.White,
-                fontSize = 17.sp,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1f),
             )
             Text(
                 text = ComputerPolicy.statusLabel(bot),
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
+                style = MaterialTheme.typography.labelLarge,
                 color = if (bot.busy == true) {
                     Color(MausPalette.argb("green"))
                 } else {
@@ -155,7 +152,7 @@ fun ComputerScreen(botId: String, onBack: () -> Unit) {
                 failure?.let {
                     Text(
                         text = it,
-                        fontSize = 13.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.error,
                         textAlign = TextAlign.Center,
                     )
@@ -176,7 +173,7 @@ fun ComputerScreen(botId: String, onBack: () -> Unit) {
                 }
                 Text(
                     text = ComputerPolicy.VNC_NOTE,
-                    fontSize = 12.sp,
+                    style = MaterialTheme.typography.bodySmall,
                     color = Color.White.copy(alpha = 0.6f),
                     textAlign = TextAlign.Center,
                 )
@@ -232,13 +229,13 @@ private fun Waiting(headline: String, explanation: String?) {
         )
         Text(
             text = headline,
-            fontSize = 15.sp,
+            style = MaterialTheme.typography.bodyMedium,
             color = Color.White.copy(alpha = 0.7f),
         )
         explanation?.let {
             Text(
                 text = it,
-                fontSize = 13.sp,
+                style = MaterialTheme.typography.bodyMedium,
                 color = Color.White.copy(alpha = 0.45f),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 32.dp),

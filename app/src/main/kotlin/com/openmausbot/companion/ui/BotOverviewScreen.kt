@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
@@ -88,7 +89,7 @@ fun BotOverviewScreen(botId: String, onBack: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             HeaderBackButton(onBack)
-            Text(title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+            Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
         }
         HorizontalDivider()
 
@@ -133,7 +134,7 @@ private fun OverviewBody(overview: BotOverview) {
             Text(overview.who.blurb)
         }
         if (overview.who.soulLead.isNotBlank()) {
-            Text(overview.who.soulLead, color = secondaryTint, fontSize = 13.sp)
+            Text(overview.who.soulLead, color = secondaryTint, style = MaterialTheme.typography.bodyMedium)
         }
     }
 
@@ -172,7 +173,7 @@ private fun OverviewBody(overview: BotOverview) {
                     Text(
                         RelativeStamp.dateAndTime(entry.at),
                         color = secondaryTint,
-                        fontSize = 12.sp,
+                        style = MaterialTheme.typography.bodySmall,
                     )
                 }
             }

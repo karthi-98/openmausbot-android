@@ -1,34 +1,164 @@
 package com.openmausbot.companion.ui
 
+import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDirection
 
-/**
- * The app's colours. Deliberately small: the roster and chat draw almost
- * everything from `secondary` opacities the way the SwiftUI screens draw from
- * `Color.secondary`, and the one branded colour is the mascot green the desktop
- * uses for the profile avatar.
+/*
+ * Material You.
+ *
+ * On Android 12+ the whole scheme comes from the wallpaper
+ * ([dynamicLightColorScheme] / [dynamicDarkColorScheme]), so the app takes on the
+ * colours of the phone it runs on, the way the system apps do.
+ *
+ * Below 12 there is no wallpaper palette, so the schemes below stand in: the full
+ * Material 3 tonal-spot scheme generated (material-color-utilities 0.3.0,
+ * `SchemeTonalSpot`, contrast 0) from the MausBot green `#009957`. Every role is
+ * filled in, so surfaces, containers and outlines stay coherent instead of
+ * falling back to Material's purple baseline for whatever was left unset.
  */
-private val Green = Color(MausPalette.argb("green"))
-
-private val LightColors = lightColorScheme(
-    primary = Green,
-    onPrimary = Color.White,
-    secondary = Green,
+private val BrandLightColors = lightColorScheme(
+    primary = Color(0xFF2D6A45),
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFFB1F1C2),
+    onPrimaryContainer = Color(0xFF10512E),
+    inversePrimary = Color(0xFF95D5A7),
+    secondary = Color(0xFF4F6353),
+    onSecondary = Color(0xFFFFFFFF),
+    secondaryContainer = Color(0xFFD2E8D4),
+    onSecondaryContainer = Color(0xFF384B3D),
+    tertiary = Color(0xFF3A646F),
+    onTertiary = Color(0xFFFFFFFF),
+    tertiaryContainer = Color(0xFFBEEAF7),
+    onTertiaryContainer = Color(0xFF214C57),
+    background = Color(0xFFF6FBF3),
+    onBackground = Color(0xFF181D18),
+    surface = Color(0xFFF6FBF3),
+    onSurface = Color(0xFF181D18),
+    surfaceVariant = Color(0xFFDCE5DB),
+    onSurfaceVariant = Color(0xFF414942),
+    surfaceTint = Color(0xFF2D6A45),
+    inverseSurface = Color(0xFF2C322D),
+    inverseOnSurface = Color(0xFFEDF2EB),
+    error = Color(0xFFBA1A1A),
+    onError = Color(0xFFFFFFFF),
+    errorContainer = Color(0xFFFFDAD6),
+    onErrorContainer = Color(0xFF93000A),
+    outline = Color(0xFF717971),
+    outlineVariant = Color(0xFFC0C9BF),
+    scrim = Color(0xFF000000),
+    surfaceBright = Color(0xFFF6FBF3),
+    surfaceContainer = Color(0xFFEAEFE8),
+    surfaceContainerHigh = Color(0xFFE5EAE2),
+    surfaceContainerHighest = Color(0xFFDFE4DD),
+    surfaceContainerLow = Color(0xFFF0F5ED),
+    surfaceContainerLowest = Color(0xFFFFFFFF),
+    surfaceDim = Color(0xFFD6DBD4),
 )
 
-private val DarkColors = darkColorScheme(
-    primary = Green,
-    onPrimary = Color.White,
-    secondary = Green,
+private val BrandDarkColors = darkColorScheme(
+    primary = Color(0xFF95D5A7),
+    onPrimary = Color(0xFF00391D),
+    primaryContainer = Color(0xFF10512E),
+    onPrimaryContainer = Color(0xFFB1F1C2),
+    inversePrimary = Color(0xFF2D6A45),
+    secondary = Color(0xFFB6CCB9),
+    onSecondary = Color(0xFF223527),
+    secondaryContainer = Color(0xFF384B3D),
+    onSecondaryContainer = Color(0xFFD2E8D4),
+    tertiary = Color(0xFFA2CDDA),
+    onTertiary = Color(0xFF023640),
+    tertiaryContainer = Color(0xFF214C57),
+    onTertiaryContainer = Color(0xFFBEEAF7),
+    background = Color(0xFF101510),
+    onBackground = Color(0xFFDFE4DD),
+    surface = Color(0xFF101510),
+    onSurface = Color(0xFFDFE4DD),
+    surfaceVariant = Color(0xFF414942),
+    onSurfaceVariant = Color(0xFFC0C9BF),
+    surfaceTint = Color(0xFF95D5A7),
+    inverseSurface = Color(0xFFDFE4DD),
+    inverseOnSurface = Color(0xFF2C322D),
+    error = Color(0xFFFFB4AB),
+    onError = Color(0xFF690005),
+    errorContainer = Color(0xFF93000A),
+    onErrorContainer = Color(0xFFFFDAD6),
+    outline = Color(0xFF8B938A),
+    outlineVariant = Color(0xFF414942),
+    scrim = Color(0xFF000000),
+    surfaceBright = Color(0xFF353B36),
+    surfaceContainer = Color(0xFF1C211C),
+    surfaceContainerHigh = Color(0xFF262B27),
+    surfaceContainerHighest = Color(0xFF313631),
+    surfaceContainerLow = Color(0xFF181D18),
+    surfaceContainerLowest = Color(0xFF0A0F0B),
+    surfaceDim = Color(0xFF101510),
 )
+
+/**
+ * The two meanings Material's scheme has no role for: something went right
+ * (a voice provider is configured, a step succeeded) and something needs a look
+ * (a degraded call, an incomplete setting). Errors use the scheme's own `error`
+ * roles.
+ *
+ * Material tones (40 / 100 / 90 / 10 light, 80 / 20 / 30 / 90 dark) of the mascot
+ * green and orange, harmonized toward the brand seed so they sit with the scheme.
+ */
+@Immutable
+data class StatusColors(
+    val success: Color,
+    val onSuccess: Color,
+    val successContainer: Color,
+    val onSuccessContainer: Color,
+    val warning: Color,
+    val onWarning: Color,
+    val warningContainer: Color,
+    val onWarningContainer: Color,
+)
+
+private val LightStatusColors = StatusColors(
+    success = Color(0xFF006D3C),
+    onSuccess = Color(0xFFFFFFFF),
+    successContainer = Color(0xFF81FAAD),
+    onSuccessContainer = Color(0xFF00210E),
+    warning = Color(0xFF855300),
+    onWarning = Color(0xFFFFFFFF),
+    warningContainer = Color(0xFFFFDDB8),
+    onWarningContainer = Color(0xFF2A1700),
+)
+
+private val DarkStatusColors = StatusColors(
+    success = Color(0xFF64DD93),
+    onSuccess = Color(0xFF00391D),
+    successContainer = Color(0xFF00522C),
+    onSuccessContainer = Color(0xFF81FAAD),
+    warning = Color(0xFFFFB95F),
+    onWarning = Color(0xFF472A00),
+    warningContainer = Color(0xFF653E00),
+    onWarningContainer = Color(0xFFFFDDB8),
+)
+
+private val LocalStatusColors = staticCompositionLocalOf { LightStatusColors }
+
+/** Success and warning colours for the scheme in force: `AppColors.status.warning`. */
+object AppColors {
+    val status: StatusColors
+        @Composable get() = LocalStatusColors.current
+}
 
 /**
  * Reading direction comes from the words, not from the locale's layout.
@@ -110,15 +240,26 @@ private val ContentDirectedTypography: Typography = Typography().run {
 @Composable
 fun CompanionTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    dynamicColor: Boolean = true,
     content: @Composable () -> Unit,
 ) {
-    MaterialTheme(
-        colorScheme = if (darkTheme) DarkColors else LightColors,
-        typography = ContentDirectedTypography,
-        content = content,
-    )
+    val colorScheme: ColorScheme = when {
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            val context = LocalContext.current
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+        darkTheme -> BrandDarkColors
+        else -> BrandLightColors
+    }
+    CompositionLocalProvider(LocalStatusColors provides if (darkTheme) DarkStatusColors else LightStatusColors) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = ContentDirectedTypography,
+            content = content,
+        )
+    }
 }
 
-/** SwiftUI's `Color.secondary` — the muted foreground everything quiet uses. */
+/** The muted foreground for secondary text and icons: Material's `onSurfaceVariant`. */
 val secondaryTint: Color
     @Composable get() = MaterialTheme.colorScheme.onSurfaceVariant

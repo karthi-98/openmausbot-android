@@ -237,12 +237,12 @@ internal fun CallScreen(bot: Bot, onDismiss: () -> Unit) {
                         scaleY = scale
                     },
                 )
-                Text(text = current.name, fontSize = 28.sp, fontWeight = FontWeight.SemiBold)
-                Text(text = CallRules.phaseText(phase, current.name), fontSize = 17.sp, color = secondaryTint)
+                Text(text = current.name, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
+                Text(text = CallRules.phaseText(phase, current.name), style = MaterialTheme.typography.bodyLarge, color = secondaryTint)
                 if (transcript.isNotEmpty() && phase == CallPhase.LISTENING) {
                     Text(
                         text = transcript,
-                        fontSize = 17.sp,
+                        style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
                         maxLines = 4,
                         modifier = Modifier.padding(horizontal = 28.dp),
@@ -251,8 +251,8 @@ internal fun CallScreen(bot: Bot, onDismiss: () -> Unit) {
                 note?.let {
                     Text(
                         text = it,
-                        fontSize = 14.sp,
-                        color = Color(0xFFFF9800),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = AppColors.status.warning,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(horizontal = 28.dp),
                     )
@@ -286,13 +286,13 @@ internal fun CallScreen(bot: Bot, onDismiss: () -> Unit) {
                         Box(
                             modifier = Modifier
                                 .size(68.dp)
-                                .background(Color(0xFFD94B52), CircleShape),
+                                .background(MaterialTheme.colorScheme.error, CircleShape),
                             contentAlignment = Alignment.Center,
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_call_end),
                                 contentDescription = null,
-                                tint = Color.White,
+                                tint = MaterialTheme.colorScheme.onError,
                                 modifier = Modifier.size(28.dp),
                             )
                         }

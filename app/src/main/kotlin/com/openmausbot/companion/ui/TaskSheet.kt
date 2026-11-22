@@ -36,7 +36,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
@@ -169,8 +168,7 @@ fun TaskSheet(
                 ) {
                     Text(
                         text = "${current.name}'s threads",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.weight(1f),
                     )
                     Icon(
@@ -208,13 +206,13 @@ fun TaskSheet(
                 ) {
                     ChatAvatar(chat = current, size = 48.dp, state = MausState.IDLE, animated = false)
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(current.name, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                        Text(TaskRules.subtitle(current), fontSize = 14.sp, color = secondaryTint)
+                        Text(current.name, style = MaterialTheme.typography.titleMedium)
+                        Text(TaskRules.subtitle(current), style = MaterialTheme.typography.bodyMedium, color = secondaryTint)
                     }
                 }
                 Text(
                     text = TaskRules.CONTEXT_FOOTER,
-                    fontSize = 13.sp,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = secondaryTint,
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 2.dp),
                 )
@@ -271,8 +269,7 @@ fun TaskSheet(
                         item(key = "archived") {
                             Text(
                                 "Archived",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.SemiBold,
+                                style = MaterialTheme.typography.labelLarge,
                                 color = secondaryTint,
                                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
                             )
@@ -483,8 +480,7 @@ private fun TaskRow(
         val pinLabel = if (task.pinned == true) "Unpin" else "Pin"
         Text(
             text = pinLabel,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Medium,
+            style = MaterialTheme.typography.labelMedium,
             color = if (enabled) secondaryTint else secondaryTint.copy(alpha = 0.4f),
             modifier = Modifier
                 .clickable(enabled = enabled) { onPin(task) }
@@ -496,8 +492,7 @@ private fun TaskRow(
             val label = if (task.isArchived) "Unarchive" else "Archive"
             Text(
                 text = label,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium,
+                style = MaterialTheme.typography.labelMedium,
                 color = if (canArchive) secondaryTint else secondaryTint.copy(alpha = 0.4f),
                 modifier = Modifier
                     .clickable(enabled = canArchive) { onArchive(task) }

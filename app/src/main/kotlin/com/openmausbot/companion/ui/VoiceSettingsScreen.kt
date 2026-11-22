@@ -17,6 +17,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,7 +31,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -117,7 +117,7 @@ fun VoiceSettingsScreen(onBack: () -> Unit) {
             IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
             }
-            Text("Voice", fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+            Text("Voice", style = MaterialTheme.typography.titleMedium)
         }
         Column(
             modifier = Modifier
@@ -128,33 +128,33 @@ fun VoiceSettingsScreen(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(VoiceSettingsRules.HEADER.uppercase(), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = secondaryTint)
+                Text(VoiceSettingsRules.HEADER.uppercase(), style = MaterialTheme.typography.labelMedium, color = secondaryTint)
                 HorizontalDivider()
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Status", fontSize = 15.sp, color = secondaryTint, modifier = Modifier.weight(1f))
+                    Text("Status", style = MaterialTheme.typography.bodyMedium, color = secondaryTint, modifier = Modifier.weight(1f))
                     val text = VoiceSettingsRules.statusText(status)
                     if (text == null) {
                         CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
                     } else {
                         Text(
                             text = text,
-                            fontSize = 15.sp,
-                            color = if (status?.isTTSConfigured == true) Color(0xFF009957) else secondaryTint,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (status?.isTTSConfigured == true) AppColors.status.success else secondaryTint,
                         )
                     }
                 }
                 if (VoiceSettingsRules.usesSystemVoices(status)) {
-                    Text(VoiceSettingsRules.SYSTEM_NOTE, fontSize = 13.sp, color = secondaryTint)
+                    Text(VoiceSettingsRules.SYSTEM_NOTE, style = MaterialTheme.typography.bodyMedium, color = secondaryTint)
                     ActionRow(text = "Use ElevenLabs", enabled = !saving) {
                         run({ session.updateVoiceProvider("elevenlabs") }, success = null)
                     }
                 }
-                Text(VoiceSettingsRules.HEADER_FOOTER, fontSize = 13.sp, color = secondaryTint)
+                Text(VoiceSettingsRules.HEADER_FOOTER, style = MaterialTheme.typography.bodyMedium, color = secondaryTint)
             }
 
             if (VoiceSettingsRules.showsKeyField(status)) {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("ELEVENLABS", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = secondaryTint)
+                    Text("ELEVENLABS", style = MaterialTheme.typography.labelMedium, color = secondaryTint)
                     HorizontalDivider()
                     OutlinedTextField(
                         value = key,
@@ -192,14 +192,14 @@ fun VoiceSettingsScreen(onBack: () -> Unit) {
                     message?.let {
                         Text(
                             text = it,
-                            fontSize = 13.sp,
-                            color = if (messageIsError) Color(0xFFFF9800) else Color(0xFF009957),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (messageIsError) MaterialTheme.colorScheme.error else AppColors.status.success,
                         )
                     }
-                    Text(VoiceSettingsRules.KEY_FOOTER, fontSize = 13.sp, color = secondaryTint)
+                    Text(VoiceSettingsRules.KEY_FOOTER, style = MaterialTheme.typography.bodyMedium, color = secondaryTint)
                 }
             } else {
-                message?.let { Text(text = it, fontSize = 13.sp, color = Color(0xFFFF9800)) }
+                message?.let { Text(text = it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error) }
             }
         }
     }

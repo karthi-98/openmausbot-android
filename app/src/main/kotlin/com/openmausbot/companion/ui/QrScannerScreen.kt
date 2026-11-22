@@ -193,8 +193,7 @@ private fun ScannerSurface(
 
         Text(
             text = validationError ?: "Point the camera at the QR code on your computer",
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Medium,
+            style = MaterialTheme.typography.titleSmall,
             textAlign = TextAlign.Center,
             color = if (validationError == null) {
                 MaterialTheme.colorScheme.onSurface

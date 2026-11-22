@@ -77,7 +77,7 @@ fun CommandSkillHud(
         ) {
             Text(
                 text = "SLASH COMMANDS",
-                fontSize = 11.sp,
+                style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
                 color = secondaryTint,
                 modifier = Modifier.weight(1f),
@@ -133,14 +133,14 @@ private fun CommandCard(command: SlashCommand, onSelect: () -> Unit) {
         ) {
             Text(
                 text = command.title,
-                fontSize = 13.sp,
+                style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
                 text = command.description,
-                fontSize = 11.sp,
+                style = MaterialTheme.typography.labelSmall,
                 color = secondaryTint,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
@@ -178,9 +178,9 @@ fun PredictiveChipsRow(
         chips.forEach { chip ->
             AssistChip(
                 onClick = { onSelect(chip) },
-                label = { Text(chip.title, fontSize = 13.sp) },
+                label = { Text(chip.title, style = MaterialTheme.typography.bodyMedium) },
                 leadingIcon = chip.icon?.let { icon ->
-                    { Text(quickReplyGlyph(icon), fontSize = 13.sp) }
+                    { Text(quickReplyGlyph(icon), style = MaterialTheme.typography.bodyMedium) }
                 },
                 border = AssistChipDefaults.assistChipBorder(enabled = true),
             )

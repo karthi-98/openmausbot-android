@@ -363,8 +363,8 @@ private fun ShareSheetContent(
             ) {
                 HeaderBackButton(onBack = { if (canCancel) cancel() })
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Send to OpenMausBot", fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
-                    Text(headerSubtitle(phase), color = secondaryTint, fontSize = 13.sp)
+                    Text("Send to OpenMausBot", style = MaterialTheme.typography.titleMedium)
+                    Text(headerSubtitle(phase), color = secondaryTint, style = MaterialTheme.typography.bodyMedium)
                 }
                 if (phase == ShareSheetPhase.SENDING) {
                     CircularProgressIndicator(modifier = Modifier.size(22.dp), strokeWidth = 2.dp)
@@ -384,15 +384,15 @@ private fun ShareSheetContent(
                             modifier = Modifier.padding(16.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
-                            Text("SHARING", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = secondaryTint)
+                            Text("SHARING", style = MaterialTheme.typography.labelMedium, color = secondaryTint)
                             SharePolicy.previewChip(preview).forEach { label ->
-                                Text(label, fontSize = 15.sp)
+                                Text(label, style = MaterialTheme.typography.bodyMedium)
                             }
                             if (preview.ignoredCount > 0) {
                                 Text(
                                     SharePolicy.ignoredCaption(preview.ignoredCount),
                                     color = MaterialTheme.colorScheme.tertiary,
-                                    fontSize = 13.sp,
+                                    style = MaterialTheme.typography.bodyMedium,
                                 )
                             }
                         }
@@ -400,7 +400,7 @@ private fun ShareSheetContent(
                 }
 
                 if (computers.isNotEmpty()) {
-                    Text("COMPUTER", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = secondaryTint)
+                    Text("COMPUTER", style = MaterialTheme.typography.labelMedium, color = secondaryTint)
                     TextButton(
                         onClick = { choosingComputer = true },
                         enabled = (phase == ShareSheetPhase.READY || phase == ShareSheetPhase.FAILED) && computers.size > 1,
@@ -408,13 +408,13 @@ private fun ShareSheetContent(
                     ) {
                         Column(modifier = Modifier.fillMaxWidth()) {
                             Text(selectedComputer?.name ?: "Choose a computer", fontWeight = FontWeight.SemiBold)
-                            selectedComputer?.routeLabel?.let { Text(it, color = secondaryTint, fontSize = 13.sp) }
+                            selectedComputer?.routeLabel?.let { Text(it, color = secondaryTint, style = MaterialTheme.typography.bodyMedium) }
                         }
                     }
                 }
 
                 if (destinations.isNotEmpty()) {
-                    Text("SEND TO", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = secondaryTint)
+                    Text("SEND TO", style = MaterialTheme.typography.labelMedium, color = secondaryTint)
                     TextButton(
                         onClick = { choosingDestination = true },
                         enabled = canEdit,
@@ -427,11 +427,11 @@ private fun ShareSheetContent(
                                     fontWeight = FontWeight.SemiBold,
                                 )
                                 if (selectedDestinationId != null && selectedDestinationId == rememberedDestinationId) {
-                                    Text("LAST USED", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary)
+                                    Text("LAST USED", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                                 }
                             }
                             selectedDestination?.subtitle?.let {
-                                Text(it, color = secondaryTint, fontSize = 13.sp)
+                                Text(it, color = secondaryTint, style = MaterialTheme.typography.bodyMedium)
                             }
                         }
                     }
@@ -452,12 +452,12 @@ private fun ShareSheetContent(
                     )
                 }
 
-                errorMessage?.let { Text(it, color = MaterialTheme.colorScheme.error, fontSize = 14.sp) }
+                errorMessage?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
                 if (imageWarning != null && imageWarning != errorMessage) {
-                    Text(imageWarning, color = MaterialTheme.colorScheme.tertiary, fontSize = 14.sp)
+                    Text(imageWarning, color = MaterialTheme.colorScheme.tertiary, style = MaterialTheme.typography.bodyMedium)
                 }
                 if (instructionWarning != null && instructionWarning != errorMessage) {
-                    Text(instructionWarning, color = MaterialTheme.colorScheme.tertiary, fontSize = 14.sp)
+                    Text(instructionWarning, color = MaterialTheme.colorScheme.tertiary, style = MaterialTheme.typography.bodyMedium)
                 }
 
                 if (phase == ShareSheetPhase.LOADING && preview.isEmpty) {
@@ -513,7 +513,7 @@ private fun ShareSheetContent(
                         ) {
                             Column(modifier = Modifier.fillMaxWidth()) {
                                 Text(computer.name)
-                                Text(computer.routeLabel, fontSize = 12.sp, color = secondaryTint)
+                                Text(computer.routeLabel, style = MaterialTheme.typography.bodySmall, color = secondaryTint)
                             }
                         }
                     }
@@ -541,7 +541,7 @@ private fun ShareSheetContent(
                         ) {
                             Column(modifier = Modifier.fillMaxWidth()) {
                                 Text(destination.name)
-                                Text(destination.subtitle, fontSize = 12.sp, color = secondaryTint)
+                                Text(destination.subtitle, style = MaterialTheme.typography.bodySmall, color = secondaryTint)
                             }
                         }
                     }

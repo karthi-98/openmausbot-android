@@ -113,8 +113,7 @@ fun DiffCard(card: TranscriptCard.Diff, modifier: Modifier = Modifier) {
         ) {
             Text(
                 text = card.filename,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleSmall,
                 maxLines = 1,
                 modifier = Modifier.weight(1f),
             )
@@ -132,14 +131,14 @@ fun DiffCard(card: TranscriptCard.Diff, modifier: Modifier = Modifier) {
             ) {
                 Text(
                     text = "+${card.additions}",
-                    fontSize = 12.sp,
+                    style = MaterialTheme.typography.labelMedium,
                     fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Bold,
                     color = DiffAdded,
                 )
                 Text(
                     text = "-${card.deletions}",
-                    fontSize = 12.sp,
+                    style = MaterialTheme.typography.labelMedium,
                     fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Bold,
                     color = DiffRemoved,
@@ -197,7 +196,7 @@ fun DiffCard(card: TranscriptCard.Diff, modifier: Modifier = Modifier) {
                                 "$label. The copied diff always includes every line"
                         },
                     ) {
-                        Text(label, fontSize = 13.sp)
+                        Text(label, style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             }
@@ -206,7 +205,7 @@ fun DiffCard(card: TranscriptCard.Diff, modifier: Modifier = Modifier) {
         HorizontalDivider(color = secondaryTint.copy(alpha = 0.2f))
 
         TextButton(onClick = { copy(card.text) }) {
-            Text("Copy Diff", fontSize = 13.sp)
+            Text("Copy Diff", style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
@@ -218,7 +217,7 @@ private fun DiffLine(line: String) {
     val hunk = line.startsWith("@@") || line.startsWith("diff")
     Text(
         text = line,
-        fontSize = 12.sp,
+        style = MaterialTheme.typography.bodySmall,
         fontFamily = FontFamily.Monospace,
         softWrap = false,
         color = when {
@@ -291,15 +290,14 @@ fun DataTableCard(card: TranscriptCard.Table, modifier: Modifier = Modifier) {
         ) {
             Text(
                 text = "DATA TABLE",
-                fontSize = 12.sp,
+                style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.weight(1f),
             )
             Text(
                 text = if (card.rows.size == 1) "1 row" else "${card.rows.size} rows",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium,
+                style = MaterialTheme.typography.labelMedium,
                 color = secondaryTint,
                 modifier = Modifier
                     .background(secondaryTint.copy(alpha = 0.14f), CircleShape)
@@ -320,7 +318,7 @@ fun DataTableCard(card: TranscriptCard.Table, modifier: Modifier = Modifier) {
         HorizontalDivider(color = secondaryTint.copy(alpha = 0.2f))
 
         TextButton(onClick = { copy(card.csv()) }) {
-            Text("Copy CSV", fontSize = 13.sp)
+            Text("Copy CSV", style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
@@ -352,7 +350,7 @@ private fun DataGrid(
                     // section label in this app: a reader in `tr-TR` must still
                     // read the column name, not a dotted capital.
                     text = header.uppercase(Locale.ROOT),
-                    fontSize = 11.sp,
+                    style = MaterialTheme.typography.labelSmall,
                     fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
@@ -370,7 +368,7 @@ private fun DataGrid(
                         // reason, and a missing cell that took no space would
                         // slide the rest of the row under the wrong heading.
                         text = row.getOrElse(column) { "" },
-                        fontSize = 12.sp,
+                        style = MaterialTheme.typography.bodySmall,
                         fontFamily = FontFamily.Monospace,
                         softWrap = false,
                     )
@@ -512,13 +510,12 @@ fun ThoughtChamber(
             )
             Text(
                 text = if (streaming) "Thinking…" else "Thought Process",
-                fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.labelLarge,
                 modifier = Modifier.weight(1f),
             )
             Text(
                 text = if (steps.size == 1) "1 step" else "${steps.size} steps",
-                fontSize = 12.sp,
+                style = MaterialTheme.typography.bodySmall,
                 fontFamily = FontFamily.Monospace,
                 color = secondaryTint,
             )
@@ -551,12 +548,12 @@ fun ThoughtChamber(
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(
                             text = "${index + 1}.",
-                            fontSize = 12.sp,
+                            style = MaterialTheme.typography.labelMedium,
                             fontFamily = FontFamily.Monospace,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary,
                         )
-                        Text(text = step, fontSize = 13.sp, color = secondaryTint)
+                        Text(text = step, style = MaterialTheme.typography.bodyMedium, color = secondaryTint)
                     }
                 }
             }
@@ -591,7 +588,7 @@ private fun Disclosure(expanded: Boolean, label: String, onToggle: () -> Unit) {
             tint = secondaryTint,
             modifier = Modifier.size(18.dp),
         )
-        Text(text = label, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = secondaryTint)
+        Text(text = label, style = MaterialTheme.typography.labelLarge, color = secondaryTint)
     }
 }
 

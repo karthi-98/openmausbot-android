@@ -8,7 +8,6 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
@@ -188,24 +187,20 @@ private const val LEADING_EDGE = 180f
 private const val QUARTER = 90f
 
 /**
- * The two bubble fills — the port of `BubbleColor` in `ios/App/SpeechBubble.swift`.
- * Solid rather than translucent on purpose: the tail is part of the same fill, and
- * a see-through bubble shows the seam.
+ * The two bubble fills, from the Material scheme in force, so under Material You
+ * they follow the wallpaper as the system's own messaging app does: what you said
+ * sits on `primaryContainer`, what a bot said on `surfaceContainerHigh`.
+ * Solid rather than translucent on purpose: the tail is part of the same fill,
+ * and a see-through bubble shows the seam.
  */
 object BubbleColor {
-    /** What you said. The mascot palette's blue, not the system's. */
-    val mine: Color = Color(MausPalette.argb("blue"))
-    val mineText: Color = Color.White
+    /** What you said. */
+    val mine: Color
+        @Composable get() = MaterialTheme.colorScheme.primaryContainer
+    val mineText: Color
+        @Composable get() = MaterialTheme.colorScheme.onPrimaryContainer
 
-    private val theirsDark = Color(0xFF262629)
-    private val theirsLight = Color(0xFFE9E9EB)
-
-    /**
-     * What a bot said. Near-black on dark, a soft grey on light — chosen off the
-     * scheme in force rather than off the system setting, so a screen rendered in
-     * a forced theme still gets the bubble that belongs to it.
-     */
+    /** What a bot said. */
     val theirs: Color
-        @Composable get() =
-            if (MaterialTheme.colorScheme.surface.luminance() < 0.5f) theirsDark else theirsLight
+        @Composable get() = MaterialTheme.colorScheme.surfaceContainerHigh
 }

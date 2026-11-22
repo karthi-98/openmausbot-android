@@ -156,17 +156,16 @@ internal fun QuestionCardView(chat: Chat, message: Message, haptics: Haptics) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 "${chat.name} has a question",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1f),
             )
             if (questions.size > 1 && !settled) {
-                Text("$answeredCount of ${questions.size}", fontSize = 12.sp, color = secondaryTint)
+                Text("$answeredCount of ${questions.size}", style = MaterialTheme.typography.bodySmall, color = secondaryTint)
             }
         }
 
         if (QuestionCardRules.agentComposed(message)) {
-            Text("Agent-composed question", fontSize = 12.sp, color = secondaryTint)
+            Text("Agent-composed question", style = MaterialTheme.typography.bodySmall, color = secondaryTint)
         }
 
         if (questions.size > 1) {
@@ -201,7 +200,7 @@ internal fun QuestionCardView(chat: Chat, message: Message, haptics: Haptics) {
                         }
                         Text(
                             question.tabLabel(position + 1),
-                            fontSize = 13.sp,
+                            style = MaterialTheme.typography.bodyMedium,
                             fontWeight = if (chosen) FontWeight.SemiBold else FontWeight.Normal,
                             color = if (chosen) MaterialTheme.colorScheme.onSurface else secondaryTint,
                         )
@@ -211,7 +210,7 @@ internal fun QuestionCardView(chat: Chat, message: Message, haptics: Haptics) {
         }
 
         SelectionContainer {
-            Text(current.question, fontSize = 15.sp)
+            Text(current.question, style = MaterialTheme.typography.bodyMedium)
         }
 
         if (settled) {
@@ -229,7 +228,7 @@ internal fun QuestionCardView(chat: Chat, message: Message, haptics: Haptics) {
                 SelectionContainer {
                     Text(
                         answer?.let(AskQuestionAnswer::withoutPreamble) ?: "Answered",
-                        fontSize = 14.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = secondaryTint,
                     )
                 }
@@ -238,7 +237,7 @@ internal fun QuestionCardView(chat: Chat, message: Message, haptics: Haptics) {
         }
 
         if (current.allowsMultiple) {
-            Text("Choose all that apply", fontSize = 12.sp, color = secondaryTint)
+            Text("Choose all that apply", style = MaterialTheme.typography.bodySmall, color = secondaryTint)
         }
 
         Column(
@@ -316,9 +315,9 @@ private fun ChoiceRow(
     ) {
         Marker(checked = checked, multi = multi)
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(label, fontSize = 15.sp, fontWeight = FontWeight.Medium)
+            Text(label, style = MaterialTheme.typography.titleSmall)
             if (!detail.isNullOrEmpty()) {
-                Text(detail, fontSize = 13.sp, color = secondaryTint)
+                Text(detail, style = MaterialTheme.typography.bodyMedium, color = secondaryTint)
             }
         }
     }

@@ -100,7 +100,7 @@ fun ClaudeUpdateCard(messageId: String, instanceId: String) {
             ClaudeUpdatePhase.Ask -> {
                 Text(
                     "This model needs a newer Claude Code. I can update Claude for you.",
-                    fontSize = 15.sp,
+                    style = MaterialTheme.typography.bodyMedium,
                 )
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -123,7 +123,7 @@ fun ClaudeUpdateCard(messageId: String, instanceId: String) {
                 )
                 Text(
                     "Updating Claude Code… this can take a minute.",
-                    fontSize = 15.sp,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = secondaryTint,
                 )
             }
@@ -135,18 +135,18 @@ fun ClaudeUpdateCard(messageId: String, instanceId: String) {
                 Icon(Icons.Filled.Check, contentDescription = null, tint = green, modifier = Modifier.size(16.dp))
                 Text(
                     "Claude updated — ${current.version}. Send your message again.",
-                    fontSize = 15.sp,
+                    style = MaterialTheme.typography.bodyMedium,
                 )
             }
             ClaudeUpdatePhase.Manual, is ClaudeUpdatePhase.Failed -> {
                 if (current is ClaudeUpdatePhase.Failed) {
                     SelectionContainer {
-                        Text(current.error, fontSize = 15.sp, color = MaterialTheme.colorScheme.error)
+                        Text(current.error, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
                     }
                 }
                 Text(
                     "Run this in Terminal on your computer, then send your message again:",
-                    fontSize = 15.sp,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = secondaryTint,
                 )
                 Row(
@@ -157,7 +157,7 @@ fun ClaudeUpdateCard(messageId: String, instanceId: String) {
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     SelectionContainer(modifier = Modifier.weight(1f)) {
-                        Text(UPDATE_COMMAND, fontSize = 14.sp, fontFamily = FontFamily.Monospace)
+                        Text(UPDATE_COMMAND, style = MaterialTheme.typography.bodyMedium, fontFamily = FontFamily.Monospace)
                     }
                     TextButton(
                         onClick = {

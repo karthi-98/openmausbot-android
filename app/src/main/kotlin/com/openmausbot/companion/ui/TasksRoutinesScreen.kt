@@ -53,7 +53,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -112,8 +111,7 @@ internal fun TasksRoutinesScreen(onBack: () -> Unit, onOpenChat: (Chat) -> Unit)
             HeaderBackButton(onBack)
             Text(
                 text = "Threads & Routines",
-                fontSize = 17.sp,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1f),
             )
             ChromeButton(
@@ -200,7 +198,7 @@ internal fun TasksRoutinesScreen(onBack: () -> Unit, onOpenChat: (Chat) -> Unit)
                     item(key = "receipts-empty") {
                         Text(
                             text = RoutineRules.NO_RECEIPTS,
-                            fontSize = 14.sp,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = secondaryTint,
                             modifier = Modifier.padding(horizontal = 20.dp),
                         )
@@ -370,10 +368,10 @@ private fun RoutineRow(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(3.dp),
         ) {
-            Text(routine.name, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(routine.name, style = MaterialTheme.typography.titleMedium)
             Text(
                 text = RoutineRules.routineSubtitle(routine, bot?.name),
-                fontSize = 12.sp,
+                style = MaterialTheme.typography.bodySmall,
                 color = secondaryTint,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
@@ -469,16 +467,16 @@ private fun RoutineRunRow(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
-                Text(run.routineName, fontSize = 15.sp)
+                Text(run.routineName, style = MaterialTheme.typography.bodyMedium)
                 Text(
                     text = RoutineRules.runSubtitle(run, bot?.name),
-                    fontSize = 12.sp,
+                    style = MaterialTheme.typography.bodySmall,
                     color = secondaryTint,
                 )
             }
             Text(
                 text = RoutineRules.runStatusLabel(run.status),
-                fontSize = 12.sp,
+                style = MaterialTheme.typography.bodySmall,
                 color = tint,
             )
             Icon(
@@ -504,17 +502,17 @@ private fun RoutineRunRow(
                 // is meant to be selectable and an error is meant to be copyable.
                 // The rows below it are controls and stay unselectable.
                 run.output?.takeIf { it.isNotEmpty() }?.let {
-                    SelectionContainer { Text(it, fontSize = 14.sp) }
+                    SelectionContainer { Text(it, style = MaterialTheme.typography.bodyMedium) }
                 }
                 run.error?.takeIf { it.isNotEmpty() }?.let {
                     SelectionContainer {
-                        Text(it, fontSize = 14.sp, color = MaterialTheme.colorScheme.error)
+                        Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
                     }
                 }
                 if (run.status == "waiting") {
                     Text(
                         text = RoutineRules.WAITING_ON_YOU,
-                        fontSize = 14.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = attentionTint,
                     )
                 }
@@ -597,8 +595,7 @@ internal fun SectionHeading(text: String) {
     ) {
         Text(
             text = text.uppercase(),
-            fontSize = 12.sp,
-            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.labelMedium,
             color = secondaryTint,
         )
         HorizontalDivider()
@@ -613,7 +610,7 @@ private fun SectionNote(title: String, description: String) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        Text(title, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-        Text(description, fontSize = 13.sp, color = secondaryTint)
+        Text(title, style = MaterialTheme.typography.titleSmall)
+        Text(description, style = MaterialTheme.typography.bodyMedium, color = secondaryTint)
     }
 }

@@ -340,7 +340,7 @@ fun PairingScreen(onCancel: () -> Unit) {
                         text = "Searching this network needs " +
                             "${permissionSnapshot.missingDiscovery.joinToString()}, which is " +
                             "still off. The QR code and the address below work without it.",
-                        fontSize = 13.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = secondaryTint,
                     )
                 }
@@ -362,7 +362,7 @@ fun PairingScreen(onCancel: () -> Unit) {
         }
 
         failure?.let {
-            Text(text = it, color = MaterialTheme.colorScheme.error, fontSize = 14.sp)
+            Text(text = it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
@@ -426,15 +426,15 @@ internal fun pairingFailureDisposition(
 @Composable
 private fun SetupSection(onScan: () -> Unit) {
     SectionCard(title = "On your computer") {
-        Text("1.  Open OpenMausBot → Settings → Phone", fontSize = 15.sp)
-        Text("2.  Choose Set up a phone", fontSize = 15.sp)
+        Text("1.  Open OpenMausBot → Settings → Phone", style = MaterialTheme.typography.bodyMedium)
+        Text("2.  Choose Set up a phone", style = MaterialTheme.typography.bodyMedium)
         Button(onClick = onScan, modifier = Modifier.fillMaxWidth()) {
             Text("Scan QR Code")
         }
         Text(
             text = "Scan the QR code, check the computer name, and confirm. The address and " +
                 "one-time credential are filled securely for you.",
-            fontSize = 13.sp,
+            style = MaterialTheme.typography.bodyMedium,
             color = secondaryTint,
         )
     }
@@ -450,7 +450,7 @@ private fun DiscoverySection(
     SectionCard(title = "On this network") {
         val problem = active?.failure
         when {
-            problem != null -> Text(problem, fontSize = 13.sp, color = secondaryTint)
+            problem != null -> Text(problem, style = MaterialTheme.typography.bodyMedium, color = secondaryTint)
 
             active == null || active.found.isEmpty() -> {
                 Row(
@@ -458,7 +458,7 @@ private fun DiscoverySection(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
-                    Text("Looking…", color = secondaryTint, fontSize = 15.sp)
+                    Text("Looking…", color = secondaryTint, style = MaterialTheme.typography.bodyMedium)
                 }
                 if (searchedLongEnough) {
                     // NSD is multicast: it does not cross subnets, and guest
@@ -469,7 +469,7 @@ private fun DiscoverySection(
                         text = "Nothing found yet. Check that this phone and your computer are on " +
                             "the same Wi-Fi network — a guest network often blocks them from seeing " +
                             "each other. You can always enter the address below instead.",
-                        fontSize = 13.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = secondaryTint,
                     )
                     // The honest answer when a network refuses to cooperate.
@@ -477,7 +477,7 @@ private fun DiscoverySection(
                         text = "If it never appears, install Tailscale on both and sign in to the " +
                             "same account — Phone settings will then show a name ending in " +
                             ".ts.net to enter below.",
-                        fontSize = 13.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = secondaryTint,
                     )
                 }
@@ -523,7 +523,7 @@ private fun ManualSection(
             text = "Whatever Phone settings on your computer shows — a secure https:// " +
                 "address, an address on this network, or a Tailscale name like " +
                 "macbook.tail1234.ts.net:8810.",
-            fontSize = 13.sp,
+            style = MaterialTheme.typography.bodyMedium,
             color = secondaryTint,
         )
     }
@@ -543,13 +543,13 @@ private fun CodeSection(
         // the user is confirming which computer at which address, and that is the
         // same question whether the credential came from a QR code or the six
         // digits are about to be typed.
-        Text(confirmation.name, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+        Text(confirmation.name, style = MaterialTheme.typography.titleMedium)
         Row(modifier = Modifier.fillMaxWidth()) {
-            Text("Address", color = secondaryTint, fontSize = 15.sp)
+            Text("Address", color = secondaryTint, style = MaterialTheme.typography.bodyMedium)
             Spacer(Modifier.weight(1f))
-            Text(confirmation.address, fontSize = 15.sp, fontFamily = FontFamily.Monospace)
+            Text(confirmation.address, style = MaterialTheme.typography.bodyMedium, fontFamily = FontFamily.Monospace)
         }
-        Text(confirmation.notice, fontSize = 13.sp, color = secondaryTint)
+        Text(confirmation.notice, style = MaterialTheme.typography.bodyMedium, color = secondaryTint)
 
         when (val step = confirmation.step) {
             is PairingConfirmation.Step.Confirm -> Button(
@@ -611,8 +611,7 @@ private fun SectionCard(title: String, content: @Composable () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(
             text = title.uppercase(),
-            fontSize = 12.sp,
-            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.labelMedium,
             color = secondaryTint,
         )
         HorizontalDivider()

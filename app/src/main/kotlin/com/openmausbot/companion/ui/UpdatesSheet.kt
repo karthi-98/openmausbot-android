@@ -93,8 +93,7 @@ internal fun UpdatesBar(updates: List<ChatUpdate>, onOpen: () -> Unit, modifier:
                 }
                 Text(
                     text = UpdatesSummary.headline(updates),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.titleSmall,
                     color = if (first == null) secondaryTint else MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -102,7 +101,7 @@ internal fun UpdatesBar(updates: List<ChatUpdate>, onOpen: () -> Unit, modifier:
             }
             Text(
                 text = UpdatesSummary.subline(updates),
-                fontSize = 12.sp,
+                style = MaterialTheme.typography.bodySmall,
                 color = secondaryTint,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -163,9 +162,9 @@ internal fun UpdatesSheet(onOpen: (Chat) -> Unit, onDismiss: () -> Unit) {
                         .padding(start = 20.dp, end = 20.dp, top = 2.dp, bottom = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("Updates", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                    Text("Updates", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.weight(1f))
-                    Text(UpdatesSummary.count(updates), fontSize = 13.sp, color = secondaryTint)
+                    Text(UpdatesSummary.count(updates), style = MaterialTheme.typography.bodyMedium, color = secondaryTint)
                 }
             }
 
@@ -183,7 +182,7 @@ internal fun UpdatesSheet(onOpen: (Chat) -> Unit, onDismiss: () -> Unit) {
                 item(key = "section-$kind") {
                     Text(
                         text = UpdatesSummary.sectionLabel(kind),
-                        fontSize = 12.sp,
+                        style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 0.5.sp,
                         // Needs you wears the colour of the chat that heads it;
@@ -230,18 +229,17 @@ private fun UpdateRow(update: ChatUpdate, face: MausState, onOpen: () -> Unit) {
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(3.dp),
         ) {
-            Text(update.chat.name, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(update.chat.name, style = MaterialTheme.typography.titleSmall)
             Text(
                 text = update.chat.threadTitle,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium,
+                style = MaterialTheme.typography.labelMedium,
                 color = secondaryTint,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
                 text = update.line.ifEmpty { " " },
-                fontSize = 14.sp,
+                style = MaterialTheme.typography.bodyMedium,
                 color = secondaryTint,
                 maxLines = if (update.kind == UpdateKind.NEEDS_YOU) 3 else 1,
                 overflow = TextOverflow.Ellipsis,
@@ -251,8 +249,7 @@ private fun UpdateRow(update: ChatUpdate, face: MausState, onOpen: () -> Unit) {
                 if (card.skillRequest != null) {
                     Text(
                         "Open the chat to review SKILL.md",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
+                        style = MaterialTheme.typography.labelMedium,
                         color = secondaryTint,
                         modifier = Modifier.padding(top = 6.dp),
                     )
@@ -281,7 +278,7 @@ private fun UpdateRow(update: ChatUpdate, face: MausState, onOpen: () -> Unit) {
                                     ButtonDefaults.buttonColors()
                                 },
                             ) {
-                                Text(option, fontSize = 13.sp)
+                                Text(option, style = MaterialTheme.typography.bodyMedium)
                             }
                         }
                     }

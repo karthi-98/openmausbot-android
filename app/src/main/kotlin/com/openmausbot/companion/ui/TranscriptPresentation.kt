@@ -10,9 +10,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,7 +37,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.openmausbot.companion.core.Chat
@@ -78,8 +78,8 @@ fun AssistantTurnChip(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(Icons.Filled.Check, contentDescription = null, tint = secondaryTint, modifier = Modifier.size(14.dp))
-                Text(turn.label, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-                Text(if (expanded) "Hide" else "Show", fontSize = 12.sp, color = secondaryTint)
+                Text(turn.label, style = MaterialTheme.typography.labelLarge)
+                Text(if (expanded) "Hide" else "Show", style = MaterialTheme.typography.bodySmall, color = secondaryTint)
             }
         }
         if (expanded) turn.items.forEach { message ->
@@ -105,9 +105,9 @@ fun AssistantTurnChip(
 fun WebhookMessageBody(content: WebhookMessageContent) {
     var expanded by remember(content) { mutableStateOf(false) }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Webhook task", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = BubbleColor.mineText)
+        Text("Webhook task", style = MaterialTheme.typography.labelMedium, color = BubbleColor.mineText)
         SelectionContainer {
-            Text(content.task, fontSize = 17.sp, color = BubbleColor.mineText)
+            Text(content.task, style = MaterialTheme.typography.bodyLarge, color = BubbleColor.mineText)
         }
         content.payload?.let { payload ->
             Row(
@@ -116,7 +116,7 @@ fun WebhookMessageBody(content: WebhookMessageContent) {
                     .semantics { stateDescription = if (expanded) "Expanded" else "Collapsed" },
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("Event payload", fontSize = 13.sp, color = BubbleColor.mineText, modifier = Modifier.weight(1f))
+                Text("Event payload", style = MaterialTheme.typography.bodyMedium, color = BubbleColor.mineText, modifier = Modifier.weight(1f))
                 Icon(
                     if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
                     contentDescription = null, tint = BubbleColor.mineText,
@@ -125,7 +125,7 @@ fun WebhookMessageBody(content: WebhookMessageContent) {
             if (expanded) {
                 SelectionContainer {
                     Text(
-                        payload, fontSize = 12.sp, fontFamily = FontFamily.Monospace, color = BubbleColor.mineText,
+                        payload, style = MaterialTheme.typography.bodySmall, fontFamily = FontFamily.Monospace, color = BubbleColor.mineText,
                         modifier = Modifier.heightIn(max = 180.dp).verticalScroll(rememberScrollState()),
                     )
                 }

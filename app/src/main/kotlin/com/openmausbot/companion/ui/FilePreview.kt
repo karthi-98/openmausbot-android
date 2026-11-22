@@ -456,8 +456,7 @@ internal fun FilePreviewSheet(
                     TextButton(onClick = onDismiss) { Text("Done") }
                     Text(
                         text = item.filename,
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.titleMedium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Center,
@@ -471,7 +470,7 @@ internal fun FilePreviewSheet(
                     Text(
                         text = message,
                         color = MaterialTheme.colorScheme.error,
-                        fontSize = 13.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                     )
                 }
@@ -503,7 +502,7 @@ internal fun FilePreviewSheet(
                         SelectionContainer(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = text,
-                                fontSize = 14.sp,
+                                style = MaterialTheme.typography.bodyMedium,
                                 fontFamily = FontFamily.Monospace,
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -632,15 +631,14 @@ private fun GenericFilePreview(item: FilePreviewItem) {
         }
         Text(
             text = item.filename,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.titleLarge,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 18.dp),
         )
         Text(
             text = "${AttachmentImportRules.formatBytes(item.data.size.toLong())} · ${item.contentType}",
             color = secondaryTint,
-            fontSize = 13.sp,
+            style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 6.dp),
         )

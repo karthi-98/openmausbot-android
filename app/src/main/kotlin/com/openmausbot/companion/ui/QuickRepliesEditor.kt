@@ -63,7 +63,7 @@ fun QuickRepliesEditor(
                     } else {
                         "Edit, reorder, or remove the prompts shown above an empty composer."
                     },
-                    fontSize = 13.sp,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = secondaryTint,
                 )
                 replies.forEachIndexed { index, reply ->
@@ -73,7 +73,7 @@ fun QuickRepliesEditor(
                                 Text(reply.title, fontWeight = FontWeight.Medium, maxLines = 1)
                                 Text(
                                     reply.prompt,
-                                    fontSize = 12.sp,
+                                    style = MaterialTheme.typography.bodySmall,
                                     color = secondaryTint,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
@@ -190,7 +190,7 @@ private fun QuickReplyForm(
                     maxLines = 5,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                Text("Icon", fontSize = 13.sp, color = secondaryTint)
+                Text("Icon", style = MaterialTheme.typography.bodyMedium, color = secondaryTint)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -206,7 +206,7 @@ private fun QuickReplyForm(
                             },
                             // The composer's own table, so the mark chosen here is
                             // the mark that turns up above the composer.
-                            label = { Text(quickReplyGlyph(choice), fontSize = 13.sp) },
+                            label = { Text(quickReplyGlyph(choice), style = MaterialTheme.typography.bodyMedium) },
                             // The glyph is a mark, not a word: the id is what a
                             // screen reader can say, as iOS's `accessibilityLabel(icon)` does.
                             modifier = Modifier.semantics { contentDescription = choice },

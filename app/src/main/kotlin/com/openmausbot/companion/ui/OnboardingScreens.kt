@@ -145,8 +145,7 @@ fun UnpairedHomeScreen(onConnect: () -> Unit, onOpenSettings: () -> Unit) {
         ) {
             Text(
                 text = "OpenMausBot",
-                fontSize = 17.sp,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.weight(1f).padding(start = 10.dp),
             )
             ChromeButton(
@@ -178,7 +177,7 @@ fun UnpairedHomeScreen(onConnect: () -> Unit, onOpenSettings: () -> Unit) {
             )
             Text(
                 text = OnboardingCopy.UNPAIRED_HOME_HINT,
-                fontSize = 13.sp,
+                style = MaterialTheme.typography.bodyMedium,
                 color = secondaryTint,
                 textAlign = TextAlign.Center,
             )
@@ -328,7 +327,7 @@ private fun Benefit(icon: ImageVector, title: String, detail: String?) {
                 fontWeight = FontWeight.SemiBold,
             )
             detail?.let {
-                Text(text = it, fontSize = 13.sp, color = secondaryTint)
+                Text(text = it, style = MaterialTheme.typography.bodyMedium, color = secondaryTint)
             }
         }
     }

@@ -76,7 +76,7 @@ internal fun BotThreadRow(
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
             Text(
                 text = task.displayTitle,
-                fontSize = 16.sp,
+                style = MaterialTheme.typography.bodyLarge,
                 fontWeight = if (task.unread == true) FontWeight.SemiBold else FontWeight.Normal,
                 color = if (dimmed) secondaryTint else MaterialTheme.colorScheme.onSurface,
                 maxLines = 2,
@@ -87,8 +87,7 @@ internal fun BotThreadRow(
                     if (runtime != null) {
                         Text(
                             text = runtime,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium,
+                            style = MaterialTheme.typography.labelMedium,
                             color = when (runtime) {
                                 "Waiting on you" -> MaterialTheme.colorScheme.error
                                 "Waiting on teammate" -> secondaryTint
@@ -100,8 +99,7 @@ internal fun BotThreadRow(
                     if (task.unread == true) {
                         Text(
                             "Unread",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium,
+                            style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.primary,
                         )
                     }
@@ -115,7 +113,7 @@ internal fun BotThreadRow(
             if (byline.isNotEmpty()) {
                 Text(
                     byline,
-                    fontSize = 12.sp,
+                    style = MaterialTheme.typography.bodySmall,
                     color = secondaryTint,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,

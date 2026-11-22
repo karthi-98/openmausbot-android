@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,7 +24,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -91,8 +91,8 @@ internal fun BotThreadTree(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 DisclosureIcon(isExpanded)
-                Text("Threads", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = secondaryTint)
-                Text(count.toString(), fontSize = 13.sp, color = secondaryTint)
+                Text("Threads", style = MaterialTheme.typography.labelLarge, color = secondaryTint)
+                Text(count.toString(), style = MaterialTheme.typography.bodyMedium, color = secondaryTint)
             }
             if (isExpanded) {
                 TouchTarget(
@@ -134,11 +134,10 @@ internal fun BotThreadTree(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         DisclosureIcon(folderExpanded)
-                        Text(folder.emoji?.takeIf { it.isNotBlank() } ?: "📁", fontSize = 13.sp)
+                        Text(folder.emoji?.takeIf { it.isNotBlank() } ?: "📁", style = MaterialTheme.typography.bodyMedium)
                         Text(
                             folder.name,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
+                            style = MaterialTheme.typography.labelLarge,
                             color = secondaryTint,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
