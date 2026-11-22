@@ -7,3 +7,6 @@ local.properties
 # the maintainer's keystore and its passwords.
 keystore.properties
 
+
+# Local build output
+build.log
