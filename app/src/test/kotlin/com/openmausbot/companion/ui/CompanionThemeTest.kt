@@ -11,10 +11,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-/**
- * The Material You theme: the brand fallback scheme, and which scheme roles the
- * bubbles and status colours are drawn from.
- */
+/** The neutral palette, and which roles the bubbles and status colours come from. */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class CompanionThemeTest {
@@ -22,35 +19,37 @@ class CompanionThemeTest {
     val compose = createComposeRule()
 
     private class Seen {
+        var background = Color.Unspecified
         var primary = Color.Unspecified
+        var card = Color.Unspecified
+        var secondaryText = Color.Unspecified
         var primaryContainer = Color.Unspecified
         var onPrimaryContainer = Color.Unspecified
-        var surfaceContainerHigh = Color.Unspecified
+        var surfaceContainer = Color.Unspecified
         var mine = Color.Unspecified
         var mineText = Color.Unspecified
         var theirs = Color.Unspecified
         var success = Color.Unspecified
-        var warning = Color.Unspecified
     }
 
-    /** Every (dark, dynamic) combination, drawn side by side in one composition. */
-    private fun renderAll(): Map<Pair<Boolean, Boolean>, Seen> {
-        val combos = listOf(false to false, true to false, false to true, true to true)
-        val seen = combos.associateWith { Seen() }
+    /** Light and dark, drawn side by side in one composition. */
+    private fun renderBoth(): Map<Boolean, Seen> {
+        val seen = mapOf(false to Seen(), true to Seen())
         compose.setContent {
-            for ((dark, dynamic) in combos) {
-                val out = seen.getValue(dark to dynamic)
-                CompanionTheme(darkTheme = dark, dynamicColor = dynamic) {
+            for ((dark, out) in seen) {
+                CompanionTheme(darkTheme = dark) {
                     val scheme = MaterialTheme.colorScheme
+                    out.background = scheme.background
                     out.primary = scheme.primary
+                    out.card = scheme.surfaceContainerHigh
+                    out.secondaryText = scheme.onSurfaceVariant
                     out.primaryContainer = scheme.primaryContainer
                     out.onPrimaryContainer = scheme.onPrimaryContainer
-                    out.surfaceContainerHigh = scheme.surfaceContainerHigh
+                    out.surfaceContainer = scheme.surfaceContainer
                     out.mine = BubbleColor.mine
                     out.mineText = BubbleColor.mineText
                     out.theirs = BubbleColor.theirs
                     out.success = AppColors.status.success
-                    out.warning = AppColors.status.warning
                 }
             }
         }
@@ -59,33 +58,30 @@ class CompanionThemeTest {
     }
 
     @Test
-    fun withoutDynamicColourTheLightSchemeIsTheOneGeneratedFromTheBrandGreen() {
-        val seen = renderAll().getValue(false to false)
-        assertEquals(Color(0xFF2D6A45), seen.primary)
-        assertEquals(Color(0xFFB1F1C2), seen.primaryContainer)
-        assertEquals(Color(0xFF006D3C), seen.success)
-        assertEquals(Color(0xFF855300), seen.warning)
+    fun darkIsTheNeutralPaletteSampledFromTheReference() {
+        val dark = renderBoth().getValue(true)
+        assertEquals(Color(0xFF141414), dark.background)
+        assertEquals(Color(0xFFFFFFFF), dark.primary)
+        assertEquals(Color(0xFF2C2C2E), dark.card)
+        assertEquals(Color(0xFF95959B), dark.secondaryText)
+        assertEquals(Color(0xFF212121), dark.theirs)
     }
 
     @Test
-    fun withoutDynamicColourTheDarkSchemeIsTheOneGeneratedFromTheBrandGreen() {
-        val seen = renderAll().getValue(true to false)
-        assertEquals(Color(0xFF95D5A7), seen.primary)
-        assertEquals(Color(0xFF10512E), seen.primaryContainer)
-        assertEquals(Color(0xFF64DD93), seen.success)
-        assertEquals(Color(0xFFFFB95F), seen.warning)
+    fun lightInvertsTheOneFilledAction() {
+        val light = renderBoth().getValue(false)
+        assertEquals(Color(0xFFFFFFFF), light.background)
+        assertEquals(Color(0xFF000000), light.primary)
     }
 
     @Test
-    fun bubblesAreDrawnFromTheSchemeSoTheyFollowMaterialYou() {
-        for ((combo, seen) in renderAll()) {
-            val (dark, dynamic) = combo
-            run {
-                assertEquals(seen.primaryContainer, seen.mine, "mine dark=$dark dynamic=$dynamic")
-                assertEquals(seen.onPrimaryContainer, seen.mineText, "mineText dark=$dark dynamic=$dynamic")
-                assertEquals(seen.surfaceContainerHigh, seen.theirs, "theirs dark=$dark dynamic=$dynamic")
-                assertNotEquals(seen.mine, seen.theirs, "bubbles distinguishable dark=$dark dynamic=$dynamic")
-            }
+    fun bubblesAreDrawnFromTheSchemeAndStayDistinct() {
+        for ((dark, seen) in renderBoth()) {
+            assertEquals(seen.primaryContainer, seen.mine, "mine dark=$dark")
+            assertEquals(seen.onPrimaryContainer, seen.mineText, "mineText dark=$dark")
+            assertEquals(seen.surfaceContainer, seen.theirs, "theirs dark=$dark")
+            assertNotEquals(seen.mine, seen.theirs, "bubbles distinguishable dark=$dark")
+            assertNotEquals(seen.background, seen.theirs, "bot bubble stands off the page dark=$dark")
         }
     }
 }

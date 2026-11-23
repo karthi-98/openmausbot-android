@@ -187,9 +187,9 @@ private const val LEADING_EDGE = 180f
 private const val QUARTER = 90f
 
 /**
- * The two bubble fills, from the Material scheme in force, so under Material You
- * they follow the wallpaper as the system's own messaging app does: what you said
- * sits on `primaryContainer`, what a bot said on `surfaceContainerHigh`.
+ * The two bubble fills, from the scheme in force: what you said sits on
+ * `primaryContainer`, what a bot said on `surfaceContainer` (#212121 in dark,
+ * a step above the #141414 page).
  * Solid rather than translucent on purpose: the tail is part of the same fill,
  * and a see-through bubble shows the seam.
  */
@@ -202,5 +202,5 @@ object BubbleColor {
 
     /** What a bot said. */
     val theirs: Color
-        @Composable get() = MaterialTheme.colorScheme.surfaceContainerHigh
+        @Composable get() = MaterialTheme.colorScheme.surfaceContainer
 }

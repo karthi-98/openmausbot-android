@@ -44,8 +44,6 @@ import org.robolectric.annotation.GraphicsMode
  *
  * Not a golden test. It asserts nothing about pixels, so it never fails on a
  * redesign; it exists so each redesign step can be looked at, before and after.
- * Uses the brand fallback scheme (no wallpaper under Robolectric), which is what
- * an Android 8-11 phone shows.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], qualifiers = "w393dp-h852dp-xhdpi")
@@ -137,7 +135,7 @@ class ScreenshotTest {
         )
         compose.setContent {
             CompositionLocalProvider(LocalCompanion provides scene.environment) {
-                CompanionTheme(darkTheme = dark, dynamicColor = false) {
+                CompanionTheme(darkTheme = dark) {
                     // As RootScreen does: a Surface sets the content colour, so text
                     // and icons that inherit it read correctly in dark mode.
                     Surface(Modifier.fillMaxSize()) {

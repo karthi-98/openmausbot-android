@@ -1,112 +1,116 @@
 package com.openmausbot.companion.ui
 
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDirection
 
 /*
- * Material You.
+ * The palette: neutral greys with white (dark) or black (light) as the only
+ * "colour" on controls, the way the reference app is built. Colour in the app
+ * comes from the bots' mascots, not from the chrome. Fixed, not from the
+ * wallpaper: the same greys on every phone.
  *
- * On Android 12+ the whole scheme comes from the wallpaper
- * ([dynamicLightColorScheme] / [dynamicDarkColorScheme]), so the app takes on the
- * colours of the phone it runs on, the way the system apps do.
+ * Dark values are sampled from the reference on a phone (sRGB). How they map:
  *
- * Below 12 there is no wallpaper palette, so the schemes below stand in: the full
- * Material 3 tonal-spot scheme generated (material-color-utilities 0.3.0,
- * `SchemeTonalSpot`, contrast 0) from the MausBot green `#009957`. Every role is
- * filled in, so surfaces, containers and outlines stay coherent instead of
- * falling back to Material's purple baseline for whatever was left unset.
+ *   background / surface        #141414  the page
+ *   surfaceContainerLow         #1E1E1E  sheets
+ *   surfaceContainer            #212121  a bot's message
+ *   surfaceContainerHigh        #2C2C2E  cards, pills, the composer, menus
+ *   surfaceContainerHighest     #3D3D42  raised round buttons
+ *   outlineVariant              #373739  dividers
+ *   onSurfaceVariant            #95959B  secondary text and icons
+ *   outline                     #66666A  placeholders
+ *   primary / onPrimary         white / black: the one filled action (send, voice)
+ *   tertiary                    #116DD2  the unread dot
+ *
+ * surfaceTint matches the surface, so Material's tonal elevation adds no tint.
  */
-private val BrandLightColors = lightColorScheme(
-    primary = Color(0xFF2D6A45),
-    onPrimary = Color(0xFFFFFFFF),
-    primaryContainer = Color(0xFFB1F1C2),
-    onPrimaryContainer = Color(0xFF10512E),
-    inversePrimary = Color(0xFF95D5A7),
-    secondary = Color(0xFF4F6353),
-    onSecondary = Color(0xFFFFFFFF),
-    secondaryContainer = Color(0xFFD2E8D4),
-    onSecondaryContainer = Color(0xFF384B3D),
-    tertiary = Color(0xFF3A646F),
+private val NeutralDarkColors = darkColorScheme(
+    primary = Color(0xFFFFFFFF),
+    onPrimary = Color(0xFF000000),
+    primaryContainer = Color(0xFF2C2C2E),
+    onPrimaryContainer = Color(0xFFFFFFFF),
+    inversePrimary = Color(0xFF000000),
+    secondary = Color(0xFF95959B),
+    onSecondary = Color(0xFF000000),
+    secondaryContainer = Color(0xFF3D3D42),
+    onSecondaryContainer = Color(0xFFFFFFFF),
+    tertiary = Color(0xFF116DD2),
     onTertiary = Color(0xFFFFFFFF),
-    tertiaryContainer = Color(0xFFBEEAF7),
-    onTertiaryContainer = Color(0xFF214C57),
-    background = Color(0xFFF6FBF3),
-    onBackground = Color(0xFF181D18),
-    surface = Color(0xFFF6FBF3),
-    onSurface = Color(0xFF181D18),
-    surfaceVariant = Color(0xFFDCE5DB),
-    onSurfaceVariant = Color(0xFF414942),
-    surfaceTint = Color(0xFF2D6A45),
-    inverseSurface = Color(0xFF2C322D),
-    inverseOnSurface = Color(0xFFEDF2EB),
-    error = Color(0xFFBA1A1A),
+    tertiaryContainer = Color(0xFF0B3A6E),
+    onTertiaryContainer = Color(0xFFD6E6FA),
+    background = Color(0xFF141414),
+    onBackground = Color(0xFFFFFFFF),
+    surface = Color(0xFF141414),
+    onSurface = Color(0xFFFFFFFF),
+    surfaceVariant = Color(0xFF2C2C2E),
+    onSurfaceVariant = Color(0xFF95959B),
+    surfaceTint = Color(0xFF141414),
+    inverseSurface = Color(0xFFFFFFFF),
+    inverseOnSurface = Color(0xFF141414),
+    error = Color(0xFFFF453A),
     onError = Color(0xFFFFFFFF),
-    errorContainer = Color(0xFFFFDAD6),
-    onErrorContainer = Color(0xFF93000A),
-    outline = Color(0xFF717971),
-    outlineVariant = Color(0xFFC0C9BF),
+    errorContainer = Color(0xFF3E1714),
+    onErrorContainer = Color(0xFFFFB4AB),
+    outline = Color(0xFF66666A),
+    outlineVariant = Color(0xFF373739),
     scrim = Color(0xFF000000),
-    surfaceBright = Color(0xFFF6FBF3),
-    surfaceContainer = Color(0xFFEAEFE8),
-    surfaceContainerHigh = Color(0xFFE5EAE2),
-    surfaceContainerHighest = Color(0xFFDFE4DD),
-    surfaceContainerLow = Color(0xFFF0F5ED),
-    surfaceContainerLowest = Color(0xFFFFFFFF),
-    surfaceDim = Color(0xFFD6DBD4),
+    surfaceBright = Color(0xFF3D3D42),
+    surfaceDim = Color(0xFF141414),
+    surfaceContainerLowest = Color(0xFF0E0E0E),
+    surfaceContainerLow = Color(0xFF1E1E1E),
+    surfaceContainer = Color(0xFF212121),
+    surfaceContainerHigh = Color(0xFF2C2C2E),
+    surfaceContainerHighest = Color(0xFF3D3D42),
 )
 
-private val BrandDarkColors = darkColorScheme(
-    primary = Color(0xFF95D5A7),
-    onPrimary = Color(0xFF00391D),
-    primaryContainer = Color(0xFF10512E),
-    onPrimaryContainer = Color(0xFFB1F1C2),
-    inversePrimary = Color(0xFF2D6A45),
-    secondary = Color(0xFFB6CCB9),
-    onSecondary = Color(0xFF223527),
-    secondaryContainer = Color(0xFF384B3D),
-    onSecondaryContainer = Color(0xFFD2E8D4),
-    tertiary = Color(0xFFA2CDDA),
-    onTertiary = Color(0xFF023640),
-    tertiaryContainer = Color(0xFF214C57),
-    onTertiaryContainer = Color(0xFFBEEAF7),
-    background = Color(0xFF101510),
-    onBackground = Color(0xFFDFE4DD),
-    surface = Color(0xFF101510),
-    onSurface = Color(0xFFDFE4DD),
-    surfaceVariant = Color(0xFF414942),
-    onSurfaceVariant = Color(0xFFC0C9BF),
-    surfaceTint = Color(0xFF95D5A7),
-    inverseSurface = Color(0xFFDFE4DD),
-    inverseOnSurface = Color(0xFF2C322D),
-    error = Color(0xFFFFB4AB),
-    onError = Color(0xFF690005),
-    errorContainer = Color(0xFF93000A),
-    onErrorContainer = Color(0xFFFFDAD6),
-    outline = Color(0xFF8B938A),
-    outlineVariant = Color(0xFF414942),
+/** The same roles in light. Provisional: to be replaced by values sampled from the reference in light mode. */
+private val NeutralLightColors = lightColorScheme(
+    primary = Color(0xFF000000),
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFFEFEFF0),
+    onPrimaryContainer = Color(0xFF000000),
+    inversePrimary = Color(0xFFFFFFFF),
+    secondary = Color(0xFF6E6E73),
+    onSecondary = Color(0xFFFFFFFF),
+    secondaryContainer = Color(0xFFE5E5EA),
+    onSecondaryContainer = Color(0xFF000000),
+    tertiary = Color(0xFF116DD2),
+    onTertiary = Color(0xFFFFFFFF),
+    tertiaryContainer = Color(0xFFD6E6FA),
+    onTertiaryContainer = Color(0xFF0B3A6E),
+    background = Color(0xFFFFFFFF),
+    onBackground = Color(0xFF000000),
+    surface = Color(0xFFFFFFFF),
+    onSurface = Color(0xFF000000),
+    surfaceVariant = Color(0xFFEFEFF0),
+    onSurfaceVariant = Color(0xFF6E6E73),
+    surfaceTint = Color(0xFFFFFFFF),
+    inverseSurface = Color(0xFF141414),
+    inverseOnSurface = Color(0xFFFFFFFF),
+    error = Color(0xFFFF3B30),
+    onError = Color(0xFFFFFFFF),
+    errorContainer = Color(0xFFFFE5E3),
+    onErrorContainer = Color(0xFF8A1C14),
+    outline = Color(0xFFA1A1A6),
+    outlineVariant = Color(0xFFE5E5EA),
     scrim = Color(0xFF000000),
-    surfaceBright = Color(0xFF353B36),
-    surfaceContainer = Color(0xFF1C211C),
-    surfaceContainerHigh = Color(0xFF262B27),
-    surfaceContainerHighest = Color(0xFF313631),
-    surfaceContainerLow = Color(0xFF181D18),
-    surfaceContainerLowest = Color(0xFF0A0F0B),
-    surfaceDim = Color(0xFF101510),
+    surfaceBright = Color(0xFFFFFFFF),
+    surfaceDim = Color(0xFFEDEDED),
+    surfaceContainerLowest = Color(0xFFFFFFFF),
+    surfaceContainerLow = Color(0xFFF7F7F7),
+    surfaceContainer = Color(0xFFF4F4F4),
+    surfaceContainerHigh = Color(0xFFEFEFF0),
+    surfaceContainerHighest = Color(0xFFE5E5EA),
 )
 
 /**
@@ -115,8 +119,7 @@ private val BrandDarkColors = darkColorScheme(
  * (a degraded call, an incomplete setting). Errors use the scheme's own `error`
  * roles.
  *
- * Material tones (40 / 100 / 90 / 10 light, 80 / 20 / 30 / 90 dark) of the mascot
- * green and orange, harmonized toward the brand seed so they sit with the scheme.
+ * System-style green and orange, chosen to read on the neutral greys in each theme.
  */
 @Immutable
 data class StatusColors(
@@ -131,25 +134,25 @@ data class StatusColors(
 )
 
 private val LightStatusColors = StatusColors(
-    success = Color(0xFF006D3C),
+    success = Color(0xFF248A3D),
     onSuccess = Color(0xFFFFFFFF),
-    successContainer = Color(0xFF81FAAD),
-    onSuccessContainer = Color(0xFF00210E),
-    warning = Color(0xFF855300),
+    successContainer = Color(0xFFDDF5E3),
+    onSuccessContainer = Color(0xFF0B3D17),
+    warning = Color(0xFFC93400),
     onWarning = Color(0xFFFFFFFF),
-    warningContainer = Color(0xFFFFDDB8),
-    onWarningContainer = Color(0xFF2A1700),
+    warningContainer = Color(0xFFFFE8D6),
+    onWarningContainer = Color(0xFF4A1A00),
 )
 
 private val DarkStatusColors = StatusColors(
-    success = Color(0xFF64DD93),
-    onSuccess = Color(0xFF00391D),
-    successContainer = Color(0xFF00522C),
-    onSuccessContainer = Color(0xFF81FAAD),
-    warning = Color(0xFFFFB95F),
-    onWarning = Color(0xFF472A00),
-    warningContainer = Color(0xFF653E00),
-    onWarningContainer = Color(0xFFFFDDB8),
+    success = Color(0xFF30D158),
+    onSuccess = Color(0xFF000000),
+    successContainer = Color(0xFF123D1E),
+    onSuccessContainer = Color(0xFFC9F5D4),
+    warning = Color(0xFFFF9F0A),
+    onWarning = Color(0xFF000000),
+    warningContainer = Color(0xFF4A2E00),
+    onWarningContainer = Color(0xFFFFE2B8),
 )
 
 private val LocalStatusColors = staticCompositionLocalOf { LightStatusColors }
@@ -240,20 +243,11 @@ private val ContentDirectedTypography: Typography = Typography().run {
 @Composable
 fun CompanionTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
     content: @Composable () -> Unit,
 ) {
-    val colorScheme: ColorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> BrandDarkColors
-        else -> BrandLightColors
-    }
     CompositionLocalProvider(LocalStatusColors provides if (darkTheme) DarkStatusColors else LightStatusColors) {
         MaterialTheme(
-            colorScheme = colorScheme,
+            colorScheme = if (darkTheme) NeutralDarkColors else NeutralLightColors,
             typography = ContentDirectedTypography,
             content = content,
         )
