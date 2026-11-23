@@ -1,6 +1,7 @@
 package com.openmausbot.companion.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -53,6 +54,10 @@ internal val MIN_TOUCH_TARGET: Dp = 48.dp
 
 private val CHROME_ELEVATION: Dp = 3.dp
 
+/** The reference's floating round buttons: 42.7 dp, a 19 dp glyph. */
+internal val CHROME_BUTTON: Dp = 43.dp
+internal val CHROME_GLYPH: Dp = 19.dp
+
 /** A capsule of chrome — pills and round buttons. */
 @Composable
 internal fun Modifier.chromeCapsule(elevation: Dp = CHROME_ELEVATION): Modifier =
@@ -63,10 +68,16 @@ internal fun Modifier.chromeCapsule(elevation: Dp = CHROME_ELEVATION): Modifier 
 internal fun Modifier.chromeSheet(cornerRadius: Dp = 28.dp, elevation: Dp = 6.dp): Modifier =
     chrome(RoundedCornerShape(cornerRadius), elevation)
 
+/**
+ * Opaque `surfaceContainerHigh` with a 1 px hairline and no shadow: how the
+ * reference floats its controls over content. [elevation] is kept for callers
+ * and ignored — a shadow reads as Material, the hairline as the reference.
+ */
+@Suppress("UNUSED_PARAMETER")
 @Composable
 internal fun Modifier.chrome(shape: Shape, elevation: Dp = CHROME_ELEVATION): Modifier = this
-    .shadow(elevation, shape, clip = false)
     .background(MaterialTheme.colorScheme.surfaceContainerHigh, shape)
+    .border(Dp.Hairline, AppColors.hairline, shape)
 
 /**
  * A round chrome button with one glyph — the shape of every action in the chrome
@@ -82,8 +93,8 @@ internal fun ChromeButton(
     contentDescription: String?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    size: Dp = 44.dp,
-    glyph: Dp = 20.dp,
+    size: Dp = CHROME_BUTTON,
+    glyph: Dp = CHROME_GLYPH,
     enabled: Boolean = true,
     tint: Color = Color.Unspecified,
 ) {
@@ -104,8 +115,8 @@ internal fun ChromeButton(
     contentDescription: String?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    size: Dp = 44.dp,
-    glyph: Dp = 20.dp,
+    size: Dp = CHROME_BUTTON,
+    glyph: Dp = CHROME_GLYPH,
     enabled: Boolean = true,
     tint: Color = Color.Unspecified,
 ) {
@@ -181,8 +192,7 @@ internal fun TouchTarget(
     Box(
         modifier = modifier
             .size(if (size > MIN_TOUCH_TARGET) size else MIN_TOUCH_TARGET)
-            .clip(CircleShape)
-            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .pressable(onClick = onClick, enabled = enabled, role = Role.Button)
             .then(
                 if (contentDescription == null) {
                     Modifier

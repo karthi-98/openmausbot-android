@@ -1,6 +1,9 @@
 package com.openmausbot.companion.ui
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,6 +29,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Create
@@ -56,6 +60,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.SolidColor
@@ -66,6 +71,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.openmausbot.companion.R
@@ -117,9 +123,6 @@ fun RosterScreen(navigator: CompanionNavigator) {
     var showingUpdates by remember { mutableStateOf(false) }
     var showingNewGroup by remember { mutableStateOf(false) }
     var showingNewSection by remember { mutableStateOf(false) }
-    var expandedBots by rememberSaveable(stateSaver = StringSetSaver) { mutableStateOf(emptySet<String>()) }
-    var collapsedFolders by rememberSaveable(stateSaver = StringSetSaver) { mutableStateOf(emptySet<String>()) }
-    var creatingThreads by remember { mutableStateOf(emptySet<String>()) }
     // One createBot at a time: a second tap while the first is in flight
     // would race two bots into existence.
     var creatingBot by remember { mutableStateOf(false) }
@@ -173,208 +176,185 @@ fun RosterScreen(navigator: CompanionNavigator) {
     // The cross-bot Needs attention section rides above every roster section.
     val attention = remember(state) { state.crossBotAttention() }
 
-    val entry: @Composable (ChatSummary, Boolean) -> Unit = { summary, last ->
-        Column {
-            ChatRow(
-                summary = summary,
-                face = faces[summary.id] ?: MausState.IDLE,
-                waiting = summary.id in waiting,
-                last = last,
-                onClick = { navigator.open(environment.chatPreferences.restoringThread(summary.chat, connection?.id)) },
-            )
-            (summary.chat as? Chat.BotChat)?.bot?.let { bot ->
-                BotThreadTree(
-                    bot = bot,
-                    queuedThreadIds = state.queuedThreadIds,
-                    query = query,
-                    expanded = bot.id in expandedBots,
-                    collapsedFolders = collapsedFolders,
-                    creating = bot.id in creatingThreads,
-                    onToggle = {
-                        haptics.play(HapticCue.SELECT)
-                        expandedBots = if (bot.id in expandedBots) expandedBots - bot.id else expandedBots + bot.id
-                    },
-                    onToggleFolder = { key ->
-                        haptics.play(HapticCue.SELECT)
-                        collapsedFolders = if (key in collapsedFolders) collapsedFolders - key else collapsedFolders + key
-                    },
-                    onCreate = {
-                        // Hoisted across bot sections and search, so moving a row
-                        // cannot permit a second creation while the first is pending.
-                        if (bot.id !in creatingThreads) {
-                            creatingThreads = creatingThreads + bot.id
-                            scope.launch {
-                                try {
-                                    val created = session.createTask(bot, title = null)
-                                    if (created != null) {
-                                        navigator.open(Chat.BotChat(created))
-                                    } else if (session.actionError == null) {
-                                        session.actionError = "Couldn't create a thread. Check the connection and try again."
-                                    }
-                                } finally {
-                                    creatingThreads = creatingThreads - bot.id
-                                }
-                            }
-                        }
-                    },
-                    onManage = { managingThreads = Chat.BotChat(bot) },
-                    onOpen = navigator::open,
-                )
-            }
-        }
+    // The same rule the sheet picks from: two copies of "which bots can be
+    // sectioned" could disagree about a hidden one.
+    val canCreateSection = remember(state) { SectionRules.selectable(state).isNotEmpty() }
+    var searchFilter by rememberSaveable { mutableStateOf(SearchFilter.ALL) }
+    var plusMenuOpen by remember { mutableStateOf(false) }
+    // Which folders are open. The groups and bots you have not filed are open by
+    // default, the sections you filed them into closed — the way the reference
+    // greets you with folders folded.
+    var openFolders by rememberSaveable(stateSaver = StringSetSaver) {
+        mutableStateOf(setOf(FOLDER_ATTENTION, FOLDER_GROUPS, FOLDER_BOTS))
+    }
+    val now = remember(state) { System.currentTimeMillis() }
+
+    // The face at the top of home: the Chief of Staff, else the first pinned bot,
+    // else the first bot. It is not listed again below.
+    val hero: Bot? = remember(state) {
+        state.unsectionedChief ?: state.pinnedBots.firstOrNull() ?: state.unsectionedBots.firstOrNull()
+    }
+
+    val openChat: (Chat) -> Unit = { chat ->
+        navigator.open(
+            if (chat is Chat.BotChat) environment.chatPreferences.restoringThread(chat, connection?.id) else chat,
+        )
+    }
+
+    val row: @Composable (ChatSummary) -> Unit = { summary ->
+        HomeRow(
+            chat = summary.chat,
+            preview = summary.preview,
+            time = if (summary.lastActivity > 0) {
+                RelativeStamp.list(summary.lastActivity, now, locale = Locale.getDefault())
+            } else {
+                ""
+            },
+            face = faces[summary.id] ?: MausState.IDLE,
+            waiting = summary.id in waiting,
+            onClick = { openChat(summary.chat) },
+        )
+    }
+
+    val toggle: (String) -> Unit = { key ->
+        haptics.play(HapticCue.SELECT)
+        openFolders = if (key in openFolders) openFolders - key else openFolders + key
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            RosterHeader(
-                name = connection?.name,
-                status = status,
-                onSettings = { navigator.push(Destination.Settings) },
-            )
-            StatusBanner()
-
-            PullToRefreshBox(
-                isRefreshing = refreshing,
-                onRefresh = {
-                    scope.launch {
-                        refreshing = true
-                        // Session.refresh waits until the stream leaves connecting
-                        // (or 10s), so the spinner means what it appears to mean.
-                        session.refresh()
-                        refreshing = false
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-            ) {
-                // Unsearched, the empty state is about bots: channels are tiles
-                // in the strip, not rows.
-                val nothingToList =
-                    if (query.isEmpty()) !RosterLayout.listsAnyBot(summaries) else rows.isEmpty()
-                if (nothingToList && hits.isEmpty()) {
-                    EmptyState(
-                        title = if (query.isEmpty()) "No bots yet" else "Nothing matches",
-                        description = if (query.isEmpty()) {
-                            "Bots you create on your computer show up here."
-                        } else {
-                            "No thread matches “$query”."
-                        },
-                    )
+        PullToRefreshBox(
+            isRefreshing = refreshing,
+            onRefresh = {
+                scope.launch {
+                    refreshing = true
+                    // Session.refresh waits until the stream leaves connecting
+                    // (or 10s), so the spinner means what it appears to mean.
+                    session.refresh()
+                    refreshing = false
                 }
+            },
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            val searchingNow = query.isNotEmpty()
+            val nothingToList =
+                if (!searchingNow) !RosterLayout.listsAnyBot(summaries) else rows.isEmpty()
+            if (nothingToList && hits.isEmpty()) {
+                EmptyState(
+                    title = if (!searchingNow) "No bots yet" else "Nothing matches",
+                    description = if (!searchingNow) {
+                        "Bots you create on your computer show up here."
+                    } else {
+                        "No thread matches “$query”."
+                    },
+                )
+            }
 
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = BAR_CLEARANCE),
-                ) {
-                    if (RosterLayout.showsGroups(query)) {
-                        if (attention.isNotEmpty()) {
-                            item(key = "attention-label") {
-                                SectionLabel("Needs attention", Modifier.padding(top = 2.dp, bottom = 4.dp))
-                            }
-                            items(attention, key = { "attention-${it.id}" }) { entry ->
-                                AttentionRow(entry = entry, onOpen = {
-                                    state.bots.firstOrNull { it.id == entry.botId }
-                                        ?.let { bot -> Chat.BotChat(bot.forTask(entry.task.threadId) ?: bot) }
-                                        ?.let(navigator::open)
-                                })
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(top = TOP_CLEARANCE, bottom = BAR_CLEARANCE),
+            ) {
+                item(key = "status") { StatusBanner() }
+
+                if (!searchingNow) {
+                    hero?.let { bot ->
+                        item(key = "hero-${bot.id}") {
+                            Box(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 22.dp), contentAlignment = Alignment.Center) {
+                                HomeHero(
+                                    bot = bot,
+                                    face = faces[bot.id] ?: MausState.IDLE,
+                                    chief = bot.chiefOfStaff == true,
+                                    onClick = { openChat(Chat.BotChat(bot)) },
+                                )
                             }
                         }
-                        state.unsectionedChief?.let { chief ->
-                            summariesById[chief.id]?.let { summary ->
-                                item(key = "chief-${chief.id}") {
-                                    entry(summary, true)
+                    }
+
+                    if (attention.isNotEmpty()) {
+                        item(key = "folder-attention") {
+                            HomeFolder(
+                                title = "Needs you",
+                                count = attention.size,
+                                expanded = FOLDER_ATTENTION in openFolders,
+                                onToggle = { toggle(FOLDER_ATTENTION) },
+                            ) {
+                                attention.forEach { entry ->
+                                    AttentionRow(entry = entry, onOpen = {
+                                        state.bots.firstOrNull { it.id == entry.botId }
+                                            ?.let { bot -> Chat.BotChat(bot.forTask(entry.task.threadId) ?: bot) }
+                                            ?.let(navigator::open)
+                                    })
                                 }
-                            }
-                        }
-                        val pinned = state.pinnedBots.mapNotNull { summariesById[it.id] }
-                        if (pinned.isNotEmpty()) {
-                            item(key = "pinned-label") {
-                                SectionLabel("Pinned", Modifier.padding(top = 2.dp, bottom = 4.dp))
-                            }
-                            itemsIndexed(pinned, key = { _, summary -> "pinned-${summary.id}" }) { index, summary ->
-                                entry(summary, index == pinned.lastIndex)
-                            }
-                        }
-                        item(key = "channels") {
-                            GroupsStrip(
-                                title = "Groups",
-                                rooms = state.unsectionedChannels,
-                                members = tiles,
-                                onOpen = { navigator.open(Chat.RoomChat(it)) },
-                                onCreate = {
-                                    haptics.play(TactileAction.START_NEW_GROUP)
-                                    showingNewGroup = true
-                                },
-                            )
-                        }
-                        if (state.botChats.isNotEmpty()) {
-                            item(key = "bot-chats") {
-                                GroupsStrip(
-                                    title = "Bot threads",
-                                    rooms = state.botChats,
-                                    members = tiles,
-                                    onOpen = { navigator.open(Chat.RoomChat(it)) },
-                                    onCreate = null,
-                                )
-                            }
-                        }
-                        val unsectioned = state.unsectionedBots.mapNotNull { summariesById[it.id] }
-                        if (unsectioned.isNotEmpty()) {
-                            item(key = "bots-label") {
-                                SectionLabel("Bots", Modifier.padding(top = 18.dp, bottom = 4.dp))
-                            }
-                            itemsIndexed(unsectioned, key = { _, summary -> "bot-${summary.id}" }) { index, summary ->
-                                entry(summary, index == unsectioned.lastIndex)
-                            }
-                        }
-                        // Chiefs, then the section's channels, then its bots —
-                        // the order of `rosterSections` in `ChatListView.swift`.
-                        state.sidebarSections.forEach { section ->
-                            item(key = "section-${section.id}") {
-                                SectionLabel(section.name, Modifier.padding(top = 18.dp, bottom = 4.dp))
-                            }
-                            val sectionChiefs = section.chiefs.mapNotNull { summariesById[it.id] }
-                            val sectionBots = section.bots.mapNotNull { summariesById[it.id] }
-                            itemsIndexed(
-                                sectionChiefs,
-                                key = { _, summary -> "section-${section.id}-chief-${summary.id}" },
-                            ) { index, summary ->
-                                entry(
-                                    summary,
-                                    // A divider separates two rows. The strip is
-                                    // not a row, and neither is the end of the
-                                    // section.
-                                    index == sectionChiefs.lastIndex &&
-                                        (section.channels.isNotEmpty() || sectionBots.isEmpty()),
-                                )
-                            }
-                            if (section.channels.isNotEmpty()) {
-                                item(key = "section-${section.id}-channels") {
-                                    GroupsStrip(
-                                        title = "Groups",
-                                        rooms = section.channels,
-                                        members = tiles,
-                                        onOpen = { navigator.open(Chat.RoomChat(it)) },
-                                        onCreate = null,
+                                if (updates.isNotEmpty()) {
+                                    Text(
+                                        text = "All updates",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.tertiary,
+                                        modifier = Modifier
+                                            .pressable(onClick = {
+                                                haptics.play(TactileAction.OPEN_UPDATES)
+                                                showingUpdates = true
+                                            })
+                                            .padding(horizontal = 19.dp, vertical = 10.dp),
                                     )
                                 }
                             }
-                            itemsIndexed(
-                                sectionBots,
-                                key = { _, summary -> "section-${section.id}-bot-${summary.id}" },
-                            ) { index, summary ->
-                                entry(summary, index == sectionBots.lastIndex)
-                            }
                         }
                     }
 
-                    if (query.isNotEmpty() && hits.isNotEmpty()) {
+                    // Pinned bots stay loose under the hero, like favourites.
+                    val pinned = state.pinnedBots.filter { it.id != hero?.id }.mapNotNull { summariesById[it.id] }
+                    items(pinned, key = { "pinned-${it.id}" }) { row(it) }
+
+                    val groups = (state.unsectionedChannels + state.botChats).mapNotNull { summariesById[it.id] }
+                    if (groups.isNotEmpty()) {
+                        item(key = "folder-groups") {
+                            HomeFolder(
+                                title = "Groups",
+                                count = groups.size,
+                                expanded = FOLDER_GROUPS in openFolders,
+                                onToggle = { toggle(FOLDER_GROUPS) },
+                            ) { groups.forEach { row(it) } }
+                        }
+                    }
+
+                    val loose = state.unsectionedBots.filter { it.id != hero?.id }.mapNotNull { summariesById[it.id] }
+                    if (loose.isNotEmpty()) {
+                        item(key = "folder-bots") {
+                            HomeFolder(
+                                title = "Bots",
+                                count = loose.size,
+                                expanded = FOLDER_BOTS in openFolders,
+                                onToggle = { toggle(FOLDER_BOTS) },
+                            ) { loose.forEach { row(it) } }
+                        }
+                    }
+
+                    // The desktop's sidebar sections, as folders: chiefs, then the
+                    // section's groups, then its bots.
+                    state.sidebarSections.forEach { section ->
+                        val inFolder = section.chiefs.filter { it.id != hero?.id }.mapNotNull { summariesById[it.id] } +
+                            section.channels.mapNotNull { summariesById[it.id] } +
+                            section.bots.filter { it.id != hero?.id }.mapNotNull { summariesById[it.id] }
+                        if (inFolder.isNotEmpty()) {
+                            val key = "section:${section.id}"
+                            item(key = "folder-$key") {
+                                HomeFolder(
+                                    title = section.name,
+                                    count = inFolder.size,
+                                    expanded = key in openFolders,
+                                    onToggle = { toggle(key) },
+                                ) { inFolder.forEach { row(it) } }
+                            }
+                        }
+                    }
+                } else {
+                    val showsMessages = searchFilter == SearchFilter.ALL || searchFilter == SearchFilter.MESSAGES
+                    if (showsMessages && hits.isNotEmpty()) {
                         item(key = "search-header") {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(top = 10.dp, bottom = 4.dp),
+                                    .padding(top = 6.dp, bottom = 4.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 SectionLabel("Messages")
@@ -406,55 +386,102 @@ fun RosterScreen(navigator: CompanionNavigator) {
                                 },
                             )
                         }
+                    }
+                    val shown = rows.filter {
+                        when (searchFilter) {
+                            SearchFilter.ALL -> true
+                            SearchFilter.MESSAGES -> false
+                            SearchFilter.BOTS -> it.chat is Chat.BotChat
+                            SearchFilter.GROUPS -> it.chat is Chat.RoomChat
+                        }
+                    }
+                    if (shown.isNotEmpty() && showsMessages && hits.isNotEmpty()) {
                         item(key = "chats-label") {
                             SectionLabel("Threads", Modifier.padding(top = 14.dp, bottom = 4.dp))
                         }
                     }
+                    items(shown, key = { "hit-row-${it.chat.threadId}" }) { row(it) }
+                }
+            }
+        }
 
-                    if (query.isNotEmpty()) {
-                        itemsIndexed(rows, key = { _, summary -> summary.chat.threadId }) { index, summary ->
-                            entry(summary, index == rows.lastIndex)
-                        }
+        // The page fades out under the floating buttons instead of meeting them
+        // edge to edge (the reference: ~90% at the top, gone by ~126 dp).
+        EdgeFade(top = true, height = TOP_FADE, modifier = Modifier.align(Alignment.TopCenter))
+        EdgeFade(top = false, height = BOTTOM_FADE, modifier = Modifier.align(Alignment.BottomCenter))
+
+        // Top: account and plus, or — while searching — the filter chips. They
+        // cross-fade in 120 ms; nothing slides.
+        Crossfade(
+            targetState = bar.searchOpen,
+            animationSpec = tween(Durations.SEARCH_CROSSFADE),
+            label = "home-top",
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .padding(top = 6.dp),
+        ) { open ->
+            if (open) {
+                SearchChips(selected = searchFilter, onSelect = { searchFilter = it })
+            } else {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = PAGE_MARGIN),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    AccountButton(name = connection?.name, onClick = { navigator.push(Destination.Settings) })
+                    Spacer(Modifier.weight(1f))
+                    Box {
+                        ChromeButton(
+                            icon = Icons.Filled.Add,
+                            contentDescription = "New",
+                            onClick = { plusMenuOpen = true },
+                            size = CHROME_BUTTON,
+                        )
+                        AnchoredMenu(
+                            expanded = plusMenuOpen,
+                            onDismiss = { plusMenuOpen = false },
+                            alignEnd = true,
+                            items = listOf(
+                                MenuItem("New bot", Icons.Filled.Create, enabled = !creatingBot) {
+                                    if (!creatingBot) {
+                                        creatingBot = true
+                                        scope.launch {
+                                            try {
+                                                session.createBot()?.let {
+                                                    haptics.play(TactileAction.CREATE_BOT_SUCCESS)
+                                                    navigator.open(Chat.BotChat(it))
+                                                }
+                                            } finally {
+                                                creatingBot = false
+                                            }
+                                        }
+                                    }
+                                },
+                                MenuItem("New group", Icons.Filled.Person) {
+                                    haptics.play(TactileAction.START_NEW_GROUP)
+                                    showingNewGroup = true
+                                },
+                                MenuItem("New section", Icons.AutoMirrored.Filled.List, enabled = canCreateSection) {
+                                    haptics.play(TactileAction.START_NEW_SECTION)
+                                    showingNewSection = true
+                                },
+                            ),
+                        )
                     }
                 }
             }
         }
 
-        RosterBottomBar(
-            updates = updates,
+        HomeBottomBar(
             bar = bar,
             onBar = { bar = it },
-            onOpenUpdates = {
-                haptics.play(TactileAction.OPEN_UPDATES)
-                showingUpdates = true
-            },
             onOpenSearch = {
                 haptics.play(TactileAction.OPEN_SEARCH)
                 bar = bar.openSearch()
             },
-            onCreateBot = {
-                if (!creatingBot) {
-                    creatingBot = true
-                    scope.launch {
-                        try {
-                            session.createBot()?.let {
-                                haptics.play(TactileAction.CREATE_BOT_SUCCESS)
-                                navigator.open(Chat.BotChat(it))
-                            }
-                        } finally {
-                            creatingBot = false
-                        }
-                    }
-                }
-            },
-            canCreateBot = !creatingBot,
-            onCreateSection = {
-                haptics.play(TactileAction.START_NEW_SECTION)
-                showingNewSection = true
-            },
-            // The same rule the sheet picks from: two copies of "which bots can
-            // be sectioned" could disagree about a hidden one.
-            canCreateSection = remember(state) { SectionRules.selectable(state).isNotEmpty() },
+            onConnectApps = { navigator.push(Destination.ConnectedApps) },
             modifier = Modifier.align(Alignment.BottomCenter),
         )
     }
@@ -495,9 +522,6 @@ fun RosterScreen(navigator: CompanionNavigator) {
     }
 }
 
-/** Room for the floating bar, so the last row can scroll clear of it. */
-private val BAR_CLEARANCE = 96.dp
-
 /** Two flags and a string: enough to survive a rotation with the search still up. */
 private val RosterBarSaver = listSaver<RosterBar, Any>(
     save = { listOf(it.searchOpen, it.query) },
@@ -508,54 +532,6 @@ private val StringSetSaver = listSaver<Set<String>, String>(
     save = { it.toList() },
     restore = { it.toSet() },
 )
-
-/**
- * You (the computer you are paired with) on the left, settings on the right, and
- * where you are in between. Search and both creations are not here any more —
- * they live in the bar at the bottom and at the end of the groups strip.
- */
-@Composable
-private fun RosterHeader(name: String?, status: Session.Status, onSettings: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        TouchTarget(onClick = onSettings, size = 44.dp, contentDescription = "Settings") {
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .chromeCapsule(),
-                contentAlignment = Alignment.Center,
-            ) {
-                ProfileAvatar(name = name ?: "You", size = 30.dp)
-            }
-        }
-
-        Column(
-            modifier = Modifier.weight(1f),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-        ) {
-            Text("Threads", style = MaterialTheme.typography.titleMedium)
-            Text(
-                text = RosterLayout.headerSubtitle(name, status),
-                style = MaterialTheme.typography.bodyMedium,
-                color = secondaryTint,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-
-        ChromeButton(
-            icon = Icons.Filled.Settings,
-            contentDescription = "Settings",
-            onClick = onSettings,
-        )
-    }
-}
 
 /** A heading over a stretch of the list. */
 @Composable
@@ -569,317 +545,94 @@ private fun SectionLabel(text: String, modifier: Modifier = Modifier) {
     )
 }
 
-/**
- * Every group, across the top, with the tile that makes one at the end — the
- * place iOS puts it, and the reason the header no longer carries a second plus.
- */
-@Composable
-private fun GroupsStrip(
-    title: String,
-    rooms: List<Room>,
-    members: Map<String, List<Bot>>,
-    onOpen: (Room) -> Unit,
-    onCreate: (() -> Unit)?,
-) {
-    Column(
-        modifier = Modifier.padding(top = 2.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        SectionLabel(title)
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(horizontal = 16.dp),
-        ) {
-            items(rooms, key = { it.id }) { room ->
-                GroupTile(
-                    room = room,
-                    members = members[room.id].orEmpty(),
-                    onClick = { onOpen(room) },
-                )
-            }
-            if (onCreate != null) {
-                item(key = "new-group") { NewGroupTile(onClick = onCreate) }
-            }
-        }
-    }
+private const val FOLDER_ATTENTION = "attention"
+private const val FOLDER_GROUPS = "groups"
+private const val FOLDER_BOTS = "bots"
+
+/** Clear of the floating buttons at the top: 6 dp + a 43 dp button + 14 dp. */
+private val TOP_CLEARANCE = 63.dp
+
+/** Room for the floating bar, so the last row can scroll clear of it. */
+private val BAR_CLEARANCE = 80.dp
+
+private val TOP_FADE = 96.dp
+private val BOTTOM_FADE = 64.dp
+
+/** What a search shows: the reference's filter chips, for what this app has. */
+internal enum class SearchFilter(val label: String) {
+    ALL("All"),
+    MESSAGES("Messages"),
+    BOTS("Bots"),
+    GROUPS("Groups"),
 }
 
 /**
- * A room as a round tile: the first two members' mascots stacked, its name
- * beneath.
+ * The page colour fading into the content at an edge, so rows pass under the
+ * floating controls instead of meeting them edge to edge.
  */
 @Composable
-private fun GroupTile(room: Room, members: List<Bot>, onClick: () -> Unit) {
-    GroupTileFrame(
-        label = room.name,
-        labelColor = MaterialTheme.colorScheme.onSurface,
-        onClick = onClick,
-    ) {
-        Box(
-            Modifier
-                .size(64.dp)
-                .background(secondaryTint.copy(alpha = 0.14f), CircleShape),
-        )
-        members.getOrNull(0)?.let {
-            BotAvatar(
-                bot = it,
-                size = 34.dp,
-                state = MausState.HAPPY,
-                animated = false,
-                modifier = Modifier.offset(x = (-9).dp, y = (-6).dp),
-            )
-        }
-        members.getOrNull(1)?.let {
-            Box(
-                modifier = Modifier
-                    .offset(x = 11.dp, y = 9.dp)
-                    .background(MaterialTheme.colorScheme.surface, CircleShape)
-                    .padding(2.dp),
-            ) {
-                BotAvatar(bot = it, size = 30.dp, state = MausState.HAPPY, animated = false)
-            }
-        }
-        if (room.unread) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(3.dp)
-                    .size(14.dp)
-                    .background(MaterialTheme.colorScheme.surface, CircleShape)
-                    .padding(2.dp)
-                    .background(MaterialTheme.colorScheme.primary, CircleShape),
-            )
-        }
-    }
+private fun EdgeFade(top: Boolean, height: Dp, modifier: Modifier = Modifier) {
+    val page = MaterialTheme.colorScheme.background
+    val solid = page.copy(alpha = 0.92f)
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(height)
+            .background(
+                Brush.verticalGradient(
+                    if (top) listOf(solid, page.copy(alpha = 0f)) else listOf(page.copy(alpha = 0f), solid),
+                ),
+            ),
+    )
 }
 
-/** The empty tile at the end of the strip: this is where a group is made. */
+/** The chip row that replaces account and plus while searching. */
 @Composable
-private fun NewGroupTile(onClick: () -> Unit) {
-    val outline = secondaryTint.copy(alpha = 0.6f)
-    GroupTileFrame(label = "New group", labelColor = secondaryTint, onClick = onClick) {
-        Spacer(
-            modifier = Modifier
-                .size(64.dp)
-                .drawWithCache {
-                    val width = 1.5.dp.toPx()
-                    val dash = 4.dp.toPx()
-                    val style = Stroke(
-                        width = width,
-                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(dash, dash), 0f),
-                    )
-                    val radius = size.minDimension / 2f - width / 2f
-                    onDrawBehind { drawCircle(color = outline, radius = radius, style = style) }
-                },
-        )
-        Icon(
-            imageVector = Icons.Filled.Add,
-            contentDescription = null,
-            tint = secondaryTint,
-            modifier = Modifier.size(24.dp),
-        )
-    }
-}
-
-@Composable
-private fun GroupTileFrame(
-    label: String,
-    labelColor: Color,
-    onClick: () -> Unit,
-    content: @Composable BoxScope.() -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .width(76.dp)
-            .clip(RoundedCornerShape(18.dp))
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(vertical = 6.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(7.dp),
-    ) {
-        Box(modifier = Modifier.size(64.dp), contentAlignment = Alignment.Center, content = content)
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = labelColor,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
-}
-
-@Composable
-private fun ChatRow(
-    summary: ChatSummary,
-    face: MausState,
-    waiting: Boolean,
-    last: Boolean,
-    onClick: () -> Unit,
-) {
-    val chat = summary.chat
-    val now = remember(summary.lastActivity) { System.currentTimeMillis() }
-    val accent = remember(chat.color) { Color(MausPalette.argb(chat.color)) }
-    Row(
+private fun SearchChips(selected: SearchFilter, onSelect: (SearchFilter) -> Unit) {
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(horizontal = PAGE_MARGIN),
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(start = 6.dp),
-        verticalAlignment = Alignment.Top,
+            .height(CHROME_BUTTON),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        // The unread dot, in the bot's own colour, at the very edge.
-        Box(
-            modifier = Modifier
-                .width(22.dp)
-                .align(Alignment.CenterVertically),
-            contentAlignment = Alignment.Center,
-        ) {
-            if (chat.unread && !chat.busy) {
-                Box(Modifier.size(10.dp).background(accent, CircleShape))
-            }
-        }
-
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .padding(end = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-            verticalAlignment = Alignment.Top,
-        ) {
-            ChatAvatar(
-                chat = chat,
-                size = 52.dp,
-                state = face,
-                modifier = Modifier.padding(top = 12.dp),
-            )
-
-            Box(modifier = Modifier.weight(1f)) {
-                Column(
-                    modifier = Modifier.padding(vertical = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Row(
-                            modifier = Modifier.weight(1f),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = chat.name,
-                                style = MaterialTheme.typography.titleMedium,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f, fill = false),
-                            )
-                            // The bot's job, the way the desktop shows it.
-                            if (chat.subtitle.isNotEmpty()) {
-                                Text(
-                                    text = chat.subtitle,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = secondaryTint,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier
-                                        .weight(1f, fill = false)
-                                        .background(
-                                            secondaryTint.copy(alpha = 0.15f),
-                                            CircleShape,
-                                        )
-                                        .padding(horizontal = 8.dp, vertical = 3.dp),
-                                )
-                            }
-                        }
-                        Text(
-                            text = RelativeStamp.list(
-                                summary.lastActivity,
-                                now,
-                                locale = Locale.getDefault(),
-                            ),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = secondaryTint,
-                            maxLines = 1,
-                        )
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = null,
-                            tint = secondaryTint.copy(alpha = 0.5f),
-                            modifier = Modifier.size(16.dp),
-                        )
-                    }
-
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.Top,
-                    ) {
-                        // One line for every bot, so the rows keep one rhythm.
-                        Text(
-                            text = summary.preview.ifEmpty { " " },
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = secondaryTint,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f),
-                        )
-                        if (chat.busy) {
-                            CircularProgressIndicator(
-                                modifier = Modifier
-                                    .padding(top = 3.dp)
-                                    .size(12.dp),
-                                strokeWidth = 2.dp,
-                            )
-                        }
-                    }
-
-                    if (waiting) {
-                        Row(
-                            modifier = Modifier
-                                .padding(top = 4.dp)
-                                .background(accent, CircleShape)
-                                .padding(horizontal = 9.dp, vertical = 4.dp),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Notifications,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(12.dp),
-                            )
-                            Text(
-                                text = "Waiting on you",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = Color.White,
-                            )
-                        }
-                    }
-                }
-
-                if (!last) HorizontalDivider(modifier = Modifier.align(Alignment.BottomStart))
+        items(SearchFilter.entries.toList(), key = { it.name }) { filter ->
+            val on = filter == selected
+            Box(
+                modifier = Modifier
+                    .height(33.dp)
+                    .background(
+                        if (on) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHigh,
+                        CircleShape,
+                    )
+                    .border(Dp.Hairline, if (on) Color.Transparent else AppColors.hairline, CircleShape)
+                    .pressable(onClick = { onSelect(filter) }, role = Role.Tab)
+                    .padding(horizontal = 14.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = filter.label,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (on) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+                )
             }
         }
     }
 }
 
 /**
- * The bar over the bottom of the list: Updates beside search and new bot, or —
- * once search is open — the field beside Cancel.
- *
- * Cancel is what closes it, and it takes the query with it: that is what puts the
- * groups strip back and returns the list to bots only.
+ * The bar along the bottom: connect-apps beside a full-round Search pill or,
+ * once search is open, the pill as a field beside a round ✕. The swap is
+ * instant, as in the reference; the pill rides the keyboard because the screen's
+ * safe-drawing padding includes the IME.
  */
 @Composable
-private fun RosterBottomBar(
-    updates: List<ChatUpdate>,
+private fun HomeBottomBar(
     bar: RosterBar,
     onBar: (RosterBar) -> Unit,
-    onOpenUpdates: () -> Unit,
     onOpenSearch: () -> Unit,
-    onCreateBot: () -> Unit,
-    canCreateBot: Boolean,
-    onCreateSection: () -> Unit,
-    canCreateSection: Boolean,
+    onConnectApps: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val focus = remember { FocusRequester() }
@@ -891,30 +644,39 @@ private fun RosterBottomBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+            .padding(start = PAGE_MARGIN, end = PAGE_MARGIN, bottom = 10.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (bar.searchOpen) {
-            Row(
-                modifier = Modifier
-                    .weight(1f)
-                    .chromeCapsule()
-                    .height(BAR_HEIGHT)
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Search,
-                    contentDescription = null,
-                    tint = secondaryTint,
-                    modifier = Modifier.size(18.dp),
-                )
-                Box(modifier = Modifier.weight(1f)) {
-                    if (bar.query.isEmpty()) {
-                        Text("Search threads", style = MaterialTheme.typography.bodyLarge, color = secondaryTint)
-                    }
+        if (!bar.searchOpen) {
+            ChromeButton(
+                painter = painterResource(R.drawable.ic_connect_apps),
+                contentDescription = "Connect apps",
+                onClick = onConnectApps,
+                size = CHROME_BUTTON,
+            )
+        }
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .height(PILL_HEIGHT)
+                .chromeCapsule()
+                .then(if (bar.searchOpen) Modifier else Modifier.pressable(onClick = onOpenSearch))
+                .padding(horizontal = 14.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = Icons.Filled.Search,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp),
+            )
+            Box(modifier = Modifier.weight(1f)) {
+                if (!bar.searchOpen || bar.query.isEmpty()) {
+                    Text("Search", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                if (bar.searchOpen) {
                     BasicTextField(
                         value = bar.query,
                         onValueChange = { onBar(bar.typed(it)) },
@@ -929,63 +691,30 @@ private fun RosterBottomBar(
                             .focusRequester(focus),
                     )
                 }
-                if (bar.query.isNotEmpty()) {
-                    TouchTarget(onClick = { onBar(bar.clearQuery()) }, size = 24.dp) {
-                        Icon(
-                            imageVector = Icons.Filled.Close,
-                            contentDescription = "Clear search",
-                            tint = secondaryTint,
-                            modifier = Modifier.size(20.dp),
-                        )
-                    }
+            }
+            if (bar.searchOpen && bar.query.isNotEmpty()) {
+                TouchTarget(onClick = { onBar(bar.clearQuery()) }, size = 24.dp) {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = "Clear search",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(18.dp),
+                    )
                 }
             }
-
-            Box(
-                modifier = Modifier
-                    .chromeCapsule()
-                    .clip(CircleShape)
-                    .height(BAR_HEIGHT)
-                    .clickable(role = Role.Button, onClick = { onBar(bar.cancelSearch()) })
-                    .padding(horizontal = 16.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text("Cancel", style = MaterialTheme.typography.bodyLarge)
-            }
-        } else {
-            UpdatesBar(
-                updates = updates,
-                onOpen = onOpenUpdates,
-                modifier = Modifier.weight(1f),
-            )
+        }
+        if (bar.searchOpen) {
             ChromeButton(
-                icon = Icons.Filled.Search,
-                contentDescription = "Search",
-                onClick = onOpenSearch,
-                size = MIN_TOUCH_TARGET,
-            )
-            ChromeButton(
-                icon = Icons.Filled.Add,
-                contentDescription = "Organize bots into a section",
-                onClick = onCreateSection,
-                enabled = canCreateSection,
-                size = MIN_TOUCH_TARGET,
-            )
-            // Writing something new, which is what making a bot is. The empty
-            // tile in the groups strip wears a plus because gathering existing
-            // bots into a room is the other thing — two glyphs, two actions.
-            ChromeButton(
-                icon = Icons.Filled.Create,
-                contentDescription = "New bot",
-                onClick = onCreateBot,
-                enabled = canCreateBot,
-                size = MIN_TOUCH_TARGET,
+                icon = Icons.Filled.Close,
+                contentDescription = "Close search",
+                onClick = { onBar(bar.cancelSearch()) },
+                size = CHROME_BUTTON,
             )
         }
     }
 }
 
-private val BAR_HEIGHT = 52.dp
+private val PILL_HEIGHT = 43.dp
 
 @Composable
 private fun SearchHitRow(hit: SearchHit, onClick: () -> Unit) {
