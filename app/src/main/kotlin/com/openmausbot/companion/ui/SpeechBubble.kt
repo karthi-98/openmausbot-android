@@ -187,6 +187,12 @@ private const val LEADING_EDGE = 180f
 private const val QUARTER = 90f
 
 /**
+ * A message as the reference draws one: a card with 18 dp corners and no tail.
+ * [SpeechBubbleShape] stays for anything that still wants a chin.
+ */
+internal val MessageShape = androidx.compose.foundation.shape.RoundedCornerShape(18.dp)
+
+/**
  * The two bubble fills, from the scheme in force: what you said sits on
  * `primaryContainer`, what a bot said on `surfaceContainer` (#212121 in dark,
  * a step above the #141414 page).

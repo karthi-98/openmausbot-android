@@ -8,31 +8,31 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
@@ -62,11 +62,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.MotionDurationScale
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
@@ -76,29 +81,29 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.openmausbot.companion.core.Chat
 import com.openmausbot.companion.core.AttachedMessageContent
-import com.openmausbot.companion.core.generatedImages
-import com.openmausbot.companion.core.voiceNotes
+import com.openmausbot.companion.core.Chat
 import com.openmausbot.companion.core.DisplayedMessageAttachment
 import com.openmausbot.companion.core.DownloadedFile
 import com.openmausbot.companion.core.Message
 import com.openmausbot.companion.core.OptionCard
 import com.openmausbot.companion.core.ThreadRef
 import com.openmausbot.companion.core.ToolActivity
-import com.openmausbot.companion.core.forTask
 import com.openmausbot.companion.core.TranscriptCard
 import com.openmausbot.companion.core.TranscriptCards
+import com.openmausbot.companion.core.forTask
+import com.openmausbot.companion.core.generatedImages
+import com.openmausbot.companion.core.voiceNotes
 import com.openmausbot.companion.core.webhookContent
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -483,15 +488,14 @@ private fun TextBubble(
                 .weight(1f, fill = false)
                 .widthIn(max = 640.dp)
                 // Room for the tail below, so the next row does not sit on it.
-                .padding(bottom = if (bubble && endsRun) SpeechBubble.tailDrop() else 0.dp)
                 .then(
                     if (bubble) {
                         Modifier
                             .background(
                                 if (mine) BubbleColor.mine else BubbleColor.theirs,
-                                SpeechBubbleShape.of(tail),
+                                MessageShape,
                             )
-                            .padding(horizontal = 15.dp, vertical = 11.dp)
+                            .padding(horizontal = 14.dp, vertical = 11.dp)
                     } else {
                         Modifier
                     },
@@ -1335,9 +1339,8 @@ fun StreamingBubble(text: String?, reasoning: String?) {
         Column(
             modifier = Modifier
                 .weight(1f, fill = false)
-                .padding(bottom = SpeechBubble.tailDrop())
-                .background(BubbleColor.theirs, SpeechBubbleShape.of(BubbleTail.LEADING))
-                .padding(horizontal = 15.dp, vertical = 11.dp),
+                .background(BubbleColor.theirs, MessageShape)
+                .padding(horizontal = 14.dp, vertical = 11.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             if (!reasoning.isNullOrEmpty() && text.isNullOrEmpty()) {
@@ -1379,11 +1382,9 @@ fun StreamingBubble(text: String?, reasoning: String?) {
 @Composable
 fun WorkingBubble(name: String, color: String) {
     val clock = remember { MausFrameClock() }
-    // Android says "reduce motion" through the animator duration scale, and this
-    // reads it the way MausAvatar does — through a snapshotFlow, so turning the
-    // setting off while a turn is running stops the dots on the next frame
-    // rather than at the end of the turn. At zero they hold their rest alpha:
-    // still three dots, just still ones.
+    // Android says "reduce motion" through the animator duration scale; read it
+    // the way MausAvatar does, so turning it off mid-turn stops the shimmer on
+    // the next frame. Still, the label simply sits at full strength.
     var moving by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         val durationScale = coroutineContext[MotionDurationScale]
@@ -1395,41 +1396,51 @@ fun WorkingBubble(name: String, color: String) {
             }
     }
 
-    val dots = Color(MausPalette.argb(color))
     val label = LiveTail.workingLabel(name)
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
-        Box(
+    val bright = MaterialTheme.colorScheme.onSurface
+    val dim = MaterialTheme.colorScheme.onSurfaceVariant
+    // The reference's live line: the bot's face, then a line of status whose
+    // light sweeps left to right — no bubble, nothing that becomes the reply.
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 4.dp, top = 4.dp, bottom = 4.dp)
+            .semantics(mergeDescendants = true) {
+                contentDescription = label
+                liveRegion = LiveRegionMode.Polite
+            },
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        MausAvatar(color = color, size = 30.dp, state = MausState.WORKING)
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            color = bright,
+            maxLines = 1,
             modifier = Modifier
-                .padding(bottom = SpeechBubble.tailDrop())
-                .background(BubbleColor.theirs, SpeechBubbleShape.of(BubbleTail.LEADING))
-                .padding(horizontal = 15.dp, vertical = 11.dp)
-                .semantics {
-                    contentDescription = label
-                    liveRegion = LiveRegionMode.Polite
-                },
-        ) {
-            Canvas(modifier = Modifier.size(WORKING_DOTS_WIDTH, WORKING_DOT)) {
-                // Read in the draw phase: a tick repaints the dots without
-                // recomposing the bubble, let alone the transcript around it.
-                val elapsed = clock.nanos.longValue
-                val live = moving
-                val radius = size.height * 0.5f
-                val step = size.height + WORKING_DOT_GAP.toPx()
-                for (index in 0 until WorkingDots.COUNT) {
-                    drawCircle(
-                        color = dots,
-                        radius = radius,
-                        center = Offset(radius + index * step, radius),
-                        alpha = WorkingDots.alpha(index, elapsed, live),
+                .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                .drawWithContent {
+                    drawContent()
+                    // Read in the draw phase: each frame repaints the sweep without
+                    // recomposing the row, let alone the transcript.
+                    val band = size.width * SHIMMER_BAND
+                    val travel = size.width + band * 2
+                    val t = if (moving) (clock.nanos.longValue / 1_000_000L % SHIMMER_PERIOD_MS) / SHIMMER_PERIOD_MS.toFloat() else 1f
+                    val x = -band + travel * t
+                    drawRect(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(dim, bright, dim),
+                            startX = x - band,
+                            endX = x + band,
+                        ),
+                        blendMode = BlendMode.SrcIn,
                     )
-                }
-            }
-        }
-        Spacer(Modifier.width(44.dp))
+                },
+        )
     }
 }
 
-private val WORKING_DOT = 7.dp
-private val WORKING_DOT_GAP = 5.dp
-private val WORKING_DOTS_WIDTH =
-    WORKING_DOT * WorkingDots.COUNT + WORKING_DOT_GAP * (WorkingDots.COUNT - 1)
+/** One sweep of light across the status line, and how wide the light is. */
+private const val SHIMMER_PERIOD_MS = 1_600L
+private const val SHIMMER_BAND = 0.35f

@@ -1,6 +1,14 @@
 package com.openmausbot.companion.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -361,7 +369,29 @@ private fun PairedScreen(
 
     BackHandler(enabled = navigator.canGoBack) { navigator.pop() }
 
-    when (val destination = navigator.current) {
+    // The reference's transitions, measured at 60 fps: into a screen, the one
+    // underneath slides 4% left while fading out and the new one fades in where
+    // it is (~100 ms); back, the top slides 7% right while fading and the one
+    // beneath fades in (~80 ms). No predictive-back preview. A change that keeps
+    // the depth and the kind of screen — a chat switching thread, a notification's
+    // thread resolving to its chat — is the same screen, re-read, not animated.
+    AnimatedContent(
+        targetState = navigator.stack,
+        contentKey = { stack -> stack.size to stack.last().transitionKey },
+        transitionSpec = {
+            val pushing = targetState.size > initialState.size
+            val popping = targetState.size < initialState.size
+            when {
+                pushing -> fadeIn(tween(Durations.PUSH)) togetherWith
+                    (fadeOut(tween(60)) + slideOutHorizontally(tween(Durations.PUSH)) { -it / 25 })
+                popping -> fadeIn(tween(Durations.POP)) togetherWith
+                    (fadeOut(tween(60)) + slideOutHorizontally(tween(Durations.POP)) { it / 14 })
+                else -> EnterTransition.None togetherWith ExitTransition.None
+            }
+        },
+        label = "screens",
+    ) { stack ->
+    when (val destination = stack.last()) {
         Destination.Roster -> RosterScreen(navigator)
         Destination.Settings -> SettingsScreen(
             onBack = navigator::pop,
@@ -400,6 +430,7 @@ private fun PairedScreen(
             botId = destination.botId,
             onBack = navigator::pop,
         )
+    }
     }
 }
 
@@ -464,3 +495,10 @@ fun EmptyState(
         actions()
     }
 }
+
+/**
+ * What makes two destinations "the same screen" for the transition: every chat
+ * address is one conversation screen; the rest are themselves.
+ */
+private val Destination.transitionKey: Any
+    get() = if (this is Destination.Conversation) "conversation" else this

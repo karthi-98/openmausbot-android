@@ -2,9 +2,6 @@ package com.openmausbot.companion.ui
 
 import android.view.KeyCharacterMap
 import androidx.activity.compose.BackHandler
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.horizontalScroll
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -18,6 +15,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,22 +31,28 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -70,8 +74,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.isShiftPressed
@@ -83,6 +88,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -98,14 +104,14 @@ import com.openmausbot.companion.R
 import com.openmausbot.companion.core.AttachmentPolicy
 import com.openmausbot.companion.core.Chat
 import com.openmausbot.companion.core.ChatTarget
-import com.openmausbot.companion.core.LocalMessageLink
-import com.openmausbot.companion.core.PendingMessageAttachment
-import com.openmausbot.companion.core.QueuedSend
 import com.openmausbot.companion.core.CompanionState
 import com.openmausbot.companion.core.Dictation
 import com.openmausbot.companion.core.DisplayedMessageAttachment
 import com.openmausbot.companion.core.DownloadedFile
+import com.openmausbot.companion.core.LocalMessageLink
 import com.openmausbot.companion.core.Message
+import com.openmausbot.companion.core.PendingMessageAttachment
+import com.openmausbot.companion.core.QueuedSend
 import com.openmausbot.companion.core.ThreadRef
 import com.openmausbot.companion.core.TranscriptRow
 import com.openmausbot.companion.core.target
@@ -1014,6 +1020,14 @@ private fun LoadedChat(
                     dictation.toggle(capturing = draft)
                 },
                 onSend = { submit() },
+                onVoice = if (bot != null) {
+                    {
+                        focusManager.clearFocus()
+                        showingCall = true
+                    }
+                } else {
+                    null
+                },
                 onToggleHud = {
                     dictation.stop()
                     haptics.play(HapticCue.SELECT)
@@ -1105,19 +1119,17 @@ private fun androidx.compose.foundation.lazy.LazyListScope.itemsIndexedKeyed(
     )
 }
 
-// The strip the top controls sit on, and the air the transcript needs below the
-// name pill before its first row.
-private val HEADER_BAR = 56.dp
-private val HEADER_SCRIM_FADE = 24.dp
-private val HEADER_CLEARANCE = 128.dp
+// Clear of the floating row (6 dp + a 43 dp button + 15 dp), and the fade the
+// transcript disappears into under it: ~90% of the page at the top, gone by
+// 126 dp, as measured on the reference.
+private val HEADER_CLEARANCE = 64.dp
+private val HEADER_FADE = 126.dp
 
 /**
- * Back on the left with the rest-of-app unread count, the bot's computer on the
- * right, and the bot itself between them over its name.
- *
- * The strip behind the two buttons is opaque and then fades out, so the
- * transcript slides under the chrome and disappears rather than stopping at a
- * line. The face and the name pill float below it on their own tiles.
+ * The reference's floating header: a round back button, a pill with the bot's
+ * face, name and thread, and a round ⋯ with the rest — profile, threads, a call,
+ * the bot's computer. All opaque, hairlined, over a fade of the page; nothing
+ * blurs and nothing casts a shadow.
  */
 @Composable
 private fun ChatHeader(
@@ -1131,137 +1143,102 @@ private fun ChatHeader(
     onOpenThreads: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val surface = MaterialTheme.colorScheme.surface
+    val page = MaterialTheme.colorScheme.background
+    var menuOpen by remember { mutableStateOf(false) }
+    val isBot = chat is Chat.BotChat
+    val menu = buildList {
+        if (isBot) add(MenuItem("View profile", Icons.Filled.Person, onClick = onOpenProfile))
+        else add(MenuItem("Chat options", Icons.Filled.MoreVert, onClick = onOpenProfile))
+        if (chat.supportsTasks) add(MenuItem("Threads", Icons.AutoMirrored.Filled.List, onClick = onOpenThreads))
+        // The computer is a bot idea; a room has none (§12). So is a call.
+        if (isBot) {
+            add(MenuItem("Call ${chat.name}", Icons.Filled.Call, onClick = onCall))
+            add(MenuItem("Watch computer", ImageVector.vectorResource(R.drawable.ic_display), onClick = onWatchComputer))
+        }
+    }
     Box(modifier = modifier.fillMaxWidth()) {
         Spacer(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(HEADER_BAR + HEADER_SCRIM_FADE)
-                .drawWithCache {
-                    val solid = HEADER_BAR.toPx() / size.height
-                    val brush = Brush.verticalGradient(
-                        0f to surface,
-                        solid to surface,
-                        1f to Color.Transparent,
-                    )
-                    onDrawBehind { drawRect(brush) }
-                },
+                .height(HEADER_FADE)
+                .background(Brush.verticalGradient(listOf(page.copy(alpha = 0.92f), page.copy(alpha = 0f)))),
         )
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.Top,
+                .padding(start = PAGE_MARGIN, end = PAGE_MARGIN, top = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             BackPill(unreadElsewhere = unreadElsewhere, onBack = onBack)
-            Spacer(Modifier.weight(1f))
-            // The computer is a bot idea; a room has none (§12). So is a call.
-            if (chat is Chat.BotChat) {
-                ChromeButton(
-                    painter = painterResource(R.drawable.ic_phone),
-                    contentDescription = "Call ${chat.name}",
-                    onClick = onCall,
-                )
-                Spacer(Modifier.size(8.dp))
-                ChromeButton(
-                    painter = painterResource(R.drawable.ic_display),
-                    contentDescription = "Watch ${chat.name}'s computer",
-                    onClick = onWatchComputer,
-                )
-            } else {
-                Spacer(Modifier.size(MIN_TOUCH_TARGET))
+            Spacer(Modifier.width(8.dp))
+            Box(modifier = Modifier.weight(1f)) {
+                NamePill(chat = chat, face = face, onOpen = if (chat.supportsTasks) onOpenThreads else onOpenProfile)
             }
-        }
-
-        Column(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = 2.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            ChatAvatar(
-                chat = chat,
-                size = 60.dp,
-                state = face,
-                modifier = if (chat is Chat.BotChat) {
-                    Modifier
-                        .clickable(role = Role.Button, onClick = onOpenProfile)
-                        .semantics { contentDescription = "Open ${chat.name} settings" }
-                } else {
-                    Modifier
-                },
-            )
-            NamePill(chat = chat, onOpen = if (chat.supportsTasks) onOpenThreads else onOpenProfile)
+            Spacer(Modifier.width(8.dp))
+            Box {
+                ChromeButton(
+                    icon = Icons.Filled.MoreVert,
+                    contentDescription = "More",
+                    onClick = { menuOpen = true },
+                    size = CHROME_BUTTON,
+                    modifier = Modifier.graphicsLayer { rotationZ = 90f },
+                )
+                AnchoredMenu(expanded = menuOpen, onDismiss = { menuOpen = false }, items = menu, alignEnd = true)
+            }
         }
     }
 }
 
-/** Leaving, with what is unread everywhere else — the badge Messages puts there. */
+/** Leaving: a round button, with what is unread everywhere else as a badge. */
 @Composable
 private fun BackPill(unreadElsewhere: Int, onBack: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .chromeCapsule()
-            .clip(CircleShape)
-            .heightIn(min = MIN_TOUCH_TARGET)
-            .clickable(role = Role.Button, onClick = onBack)
-            .padding(
-                start = 14.dp,
-                end = if (unreadElsewhere > 0) 10.dp else 14.dp,
-            ),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+    Box {
+        ChromeButton(
+            icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
             contentDescription = "Back",
-            modifier = Modifier.size(20.dp),
+            onClick = onBack,
+            size = CHROME_BUTTON,
+            glyph = 26.dp,
         )
         if (unreadElsewhere > 0) {
             Text(
                 text = "$unreadElsewhere",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                modifier = Modifier
-                    .background(MaterialTheme.colorScheme.secondaryContainer, CircleShape)
-                    .defaultMinSize(minWidth = 22.dp, minHeight = 22.dp)
-                    .padding(horizontal = 7.dp, vertical = 2.dp),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onTertiary,
                 textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .background(MaterialTheme.colorScheme.tertiary, CircleShape)
+                    .defaultMinSize(minWidth = 18.dp, minHeight = 18.dp)
+                    .padding(horizontal = 5.dp, vertical = 1.dp),
             )
         }
     }
 }
 
 /**
- * The bot's name over its job, and the door to its profile — "who this is", as
- * The conversation title opens thread navigation; the avatar opens settings.
+ * Who this is and which thread: the face, the name, the thread title. Tapping it
+ * switches thread (or, in a room, opens its options).
  */
 @Composable
-private fun NamePill(chat: Chat, onOpen: () -> Unit) {
+private fun NamePill(chat: Chat, face: MausState, onOpen: () -> Unit) {
     val hasThreads = chat.supportsTasks
     Row(
         modifier = Modifier
+            .height(CHROME_BUTTON)
             .chromeCapsule()
-            .clip(CircleShape)
-            .heightIn(min = MIN_TOUCH_TARGET)
-            .clickable(
-                role = Role.Button,
-                onClickLabel = if (hasThreads) {
-                    "Switch thread"
-                } else {
-                    "Open ${chat.name} chat options"
-                },
+            .pressable(
                 onClick = onOpen,
+                onClickLabel = if (hasThreads) "Switch thread" else "Open ${chat.name} chat options",
             )
-            .padding(start = 14.dp, end = 10.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+            .padding(start = 9.dp, end = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        ChatAvatar(chat = chat, size = 26.dp, state = face, animated = false)
         Text(
             text = chat.name,
-            style = MaterialTheme.typography.titleSmall,
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f, fill = false),
@@ -1271,18 +1248,20 @@ private fun NamePill(chat: Chat, onOpen: () -> Unit) {
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyMedium,
-                color = secondaryTint,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f, fill = false),
             )
         }
-        Icon(
-            imageVector = if (hasThreads) Icons.Filled.ArrowDropDown else Icons.Filled.MoreVert,
-            contentDescription = null,
-            tint = secondaryTint,
-            modifier = Modifier.size(16.dp),
-        )
+        if (hasThreads) {
+            Icon(
+                imageVector = Icons.Filled.ArrowDropDown,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(18.dp),
+            )
+        }
     }
 }
 
@@ -1448,6 +1427,8 @@ private fun Composer(
     onDraftChange: (String) -> Unit,
     onToggleDictation: () -> Unit,
     onSend: () -> Unit,
+    /** The voice button while the field is empty; null where the chat has no voice. */
+    onVoice: (() -> Unit)?,
     onToggleHud: () -> Unit,
     onCloseHud: () -> Unit,
     onSelectCommand: (SlashCommand) -> Unit,
@@ -1571,22 +1552,107 @@ private fun Composer(
 
             ComposerAccessory.NONE -> Unit
         }
+        // The reference's composer: one pill with everything inside it — a round
+        // + on the raised grey, the field, the mic, and one white round action
+        // that is voice while the field is empty and send once there is
+        // something to send. Corners stay at half the one-line height as the
+        // draft grows, so five lines do not become a giant pill.
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .chromeSheet(cornerRadius = COMPOSER_HEIGHT / 2)
+                .heightIn(min = COMPOSER_HEIGHT)
+                .padding(horizontal = 2.dp),
             verticalAlignment = Alignment.Bottom,
         ) {
             TouchTarget(
                 onClick = onTogglePlus,
+                size = COMPOSER_HEIGHT,
                 contentDescription = if (plusOpen) "Close" else "More",
             ) {
                 Box(
                     modifier = Modifier
-                        .size(44.dp)
-                        .chromeCapsule()
+                        .size(COMPOSER_GLYPH_TILE)
+                        .background(
+                            if (plusOpen) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.surfaceContainerHighest,
+                            CircleShape,
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = null,
+                        tint = if (plusOpen) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier
+                            .size(19.dp)
+                            .graphicsLayer { rotationZ = turn.value },
+                    )
+                }
+            }
+
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 2.dp, top = 12.dp, bottom = 12.dp),
+            ) {
+                if (draft.isEmpty()) {
+                    Text(
+                        text = ComposerPromise.placeholder(
+                            name = name,
+                            busy = busy,
+                            engineCanSteer = engineCanSteer,
+                            sending = sending,
+                            listening = dictationListening,
+                        ),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.outline,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                BasicTextField(
+                    value = draft,
+                    onValueChange = onDraftChange,
+                    // Partials rebuild from a frozen base; prevent competing
+                    // edits without dimming the text.
+                    readOnly = dictationLocked,
+                    maxLines = 5,
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(
+                        color = MaterialTheme.colorScheme.onSurface,
+                    ),
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                    // The software keyboard's Return breaks the line, like
+                    // Messages; the round action is the one send. A hardware
+                    // Return still sends and Shift+Return breaks the line. Some
+                    // soft keyboards deliver their Return as a key event too, so
+                    // the rule also asks where it came from.
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onPreviewKeyEvent { event ->
+                            val sends = ComposerReturn.sends(
+                                isReturnKey = event.key == Key.Enter || event.key == Key.NumPadEnter,
+                                keyDown = event.type == KeyEventType.KeyDown,
+                                shift = event.isShiftPressed,
+                                fromSoftwareKeyboard =
+                                    event.nativeKeyEvent.deviceId == KeyCharacterMap.VIRTUAL_KEYBOARD,
+                            )
+                            if (sends) onSend()
+                            sends
+                        },
+                )
+            }
+
+            TouchTarget(
+                onClick = onToggleDictation,
+                size = COMPOSER_HEIGHT,
+                contentDescription = if (dictationListening) "Stop dictation" else "Start dictation",
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(COMPOSER_GLYPH_TILE)
                         .then(
-                            if (plusOpen) {
-                                Modifier.background(MaterialTheme.colorScheme.onSurface, CircleShape)
+                            if (dictationListening) {
+                                Modifier.background(MaterialTheme.colorScheme.errorContainer, CircleShape)
                             } else {
                                 Modifier
                             },
@@ -1594,155 +1660,56 @@ private fun Composer(
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Add,
+                        painter = painterResource(R.drawable.ic_mic),
                         contentDescription = null,
-                        tint = if (plusOpen) {
-                            MaterialTheme.colorScheme.surface
+                        tint = if (dictationListening) {
+                            MaterialTheme.colorScheme.onErrorContainer
                         } else {
-                            MaterialTheme.colorScheme.onSurface
+                            MaterialTheme.colorScheme.onSurfaceVariant
                         },
-                        modifier = Modifier
-                            .size(22.dp)
-                            .graphicsLayer { rotationZ = turn.value },
+                        modifier = Modifier.size(21.dp),
                     )
                 }
             }
 
-            Row(
-                modifier = Modifier
-                    .weight(1f)
-                    // A capsule at one line (48dp tall, 24dp corners) that keeps
-                    // those corners as the draft grows, the way Messages does.
-                    // CircleShape rounds to half the height, and a five-line
-                    // draft became a giant pill.
-                    .chromeSheet(cornerRadius = MIN_TOUCH_TARGET / 2)
-                    .heightIn(min = MIN_TOUCH_TARGET),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.Bottom,
+            // Voice while there is nothing to send (where the chat has a voice);
+            // send otherwise. Always the one white circle.
+            val voice = !canSend && onVoice != null
+            TouchTarget(
+                onClick = { if (voice) onVoice?.invoke() else onSend() },
+                enabled = voice || canSend,
+                size = COMPOSER_HEIGHT,
             ) {
-                // The way into the HUD that does not start with typing. iOS draws
-                // the `command` glyph here; Android's core icon set has no
-                // counterpart, and the character the feature is named after says
-                // it better than a borrowed symbol would.
-                TouchTarget(
-                    onClick = onToggleHud,
-                    contentDescription = "Slash commands",
-                    modifier = Modifier.semantics {
-                        stateDescription = if (accessory == ComposerAccessory.HUD) {
-                            "Expanded"
-                        } else {
-                            "Collapsed"
-                        }
-                    },
-                ) {
-                    Text(
-                        text = "/",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.Monospace,
-                        color = if (accessory == ComposerAccessory.HUD) {
-                            MaterialTheme.colorScheme.onSurface
-                        } else {
-                            secondaryTint
-                        },
-                    )
-                }
-
                 Box(
                     modifier = Modifier
-                        .weight(1f)
-                        .padding(top = 13.dp, bottom = 13.dp),
-                ) {
-                    if (draft.isEmpty()) {
-                        Text(
-                            text = ComposerPromise.placeholder(
-                                name = name,
-                                busy = busy,
-                                engineCanSteer = engineCanSteer,
-                                sending = sending,
-                                listening = dictationListening,
-                            ),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = secondaryTint,
-                        )
-                    }
-                    BasicTextField(
-                        value = draft,
-                        onValueChange = onDraftChange,
-                        // Partials rebuild from a frozen base; prevent competing
-                        // edits without dimming the text.
-                        readOnly = dictationLocked,
-                        maxLines = 5,
-                        textStyle = MaterialTheme.typography.bodyLarge.copy(
-                            color = MaterialTheme.colorScheme.onSurface,
-                        ),
-                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                        // The software keyboard's Return breaks the line, like
-                        // Messages; the arrow button on the bar is the one send.
-                        // A hardware Return still sends and Shift+Return breaks
-                        // the line. Some soft keyboards deliver their Return as a
-                        // key event too, so the rule also asks where it came from.
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .onPreviewKeyEvent { event ->
-                                val sends = ComposerReturn.sends(
-                                    isReturnKey = event.key == Key.Enter || event.key == Key.NumPadEnter,
-                                    keyDown = event.type == KeyEventType.KeyDown,
-                                    shift = event.isShiftPressed,
-                                    fromSoftwareKeyboard =
-                                        event.nativeKeyEvent.deviceId == KeyCharacterMap.VIRTUAL_KEYBOARD,
-                                )
-                                if (sends) onSend()
-                                sends
+                        .size(COMPOSER_GLYPH_TILE)
+                        .background(
+                            if (voice || canSend) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
                             },
-                    )
-                }
-
-                TouchTarget(
-                    onClick = onToggleDictation,
-                    contentDescription = if (dictationListening) {
-                        "Stop dictation"
-                    } else {
-                        "Start dictation"
-                    },
+                            CircleShape,
+                        ),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .background(
-                                if (dictationListening) {
-                                    MaterialTheme.colorScheme.errorContainer
-                                } else {
-                                    secondaryTint.copy(alpha = 0.12f)
-                                },
-                                CircleShape,
-                            ),
-                        contentAlignment = Alignment.Center,
-                    ) {
+                    if (voice) {
                         Icon(
-                            painter = painterResource(R.drawable.ic_mic),
-                            contentDescription = null,
-                            tint = if (dictationListening) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.size(16.dp),
+                            painter = painterResource(R.drawable.ic_voice_wave),
+                            contentDescription = "Talk to $name",
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(17.dp),
                         )
-                    }
-                }
-
-                TouchTarget(onClick = onSend, enabled = canSend) {
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .background(
-                                if (canSend) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
-                                CircleShape,
-                            ),
-                        contentAlignment = Alignment.Center,
-                    ) {
+                    } else {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Send,
                             contentDescription = "Send",
-                            tint = if (canSend) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-                            modifier = Modifier.size(16.dp),
+                            tint = if (canSend) {
+                                MaterialTheme.colorScheme.onPrimary
+                            } else {
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                            },
+                            modifier = Modifier.size(15.dp),
                         )
                     }
                 }
@@ -1750,3 +1717,7 @@ private fun Composer(
         }
     }
 }
+
+/** The pill is one 48 dp line; the round glyph tiles inside it are 31 dp. */
+private val COMPOSER_HEIGHT = 48.dp
+private val COMPOSER_GLYPH_TILE = 31.dp
